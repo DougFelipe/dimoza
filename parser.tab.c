@@ -568,12 +568,12 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    62,    62,    78,    79,    87,    94,   104,   105,   109,
-     110,   118,   123,   135,   136,   144,   145,   146,   147,   148,
-     149,   150,   154,   160,   170,   183,   193,   201,   208,   228,
-     235,   246,   261,   262,   263,   264,   265,   266,   270,   271,
-     272,   273,   274,   275,   276,   277,   278,   279,   280,   281,
-     288,   301,   302,   303,   307,   335,   336,   340,   341
+       0,    62,    62,    75,    76,    84,    91,   101,   102,   106,
+     107,   115,   120,   132,   133,   141,   142,   143,   144,   145,
+     146,   147,   151,   157,   167,   180,   190,   198,   205,   225,
+     232,   243,   258,   259,   260,   261,   262,   263,   267,   268,
+     269,   270,   271,   272,   273,   274,   275,   276,   277,   278,
+     285,   298,   299,   300,   304,   332,   333,   337,   338
 };
 #endif
 
@@ -1231,29 +1231,26 @@ yyreduce:
             "#include <stdio.h>\n"
             "#include <stdlib.h>\n"
             "#include <stdbool.h>\n"
-            "#include \"lib/rational.h\"\n"
-            "#include \"lib/matrix.h\"\n"
-            "#include \"lib/bst.h\"\n\n" // Inclui a biblioteca de BST
             "float read() { float v; if (scanf(\"%%f\", &v)!=1) return -1.0f; return v;}\n\n"
         );
         fprintf(yyout, "%s\n", (yyvsp[0].rec)->code);
         freeRecord((yyvsp[0].rec));
     }
-#line 1243 "parser.tab.c"
+#line 1240 "parser.tab.c"
     break;
 
   case 4: /* decl_list: decl_list func_decl  */
-#line 79 "parser.y"
+#line 76 "parser.y"
                           {
         char *s = cat((yyvsp[-1].rec)->code, "\n\n", (yyvsp[0].rec)->code, "", "");
         (yyval.rec) = createRecord(s, ""); free(s);
         freeRecord((yyvsp[-1].rec)); freeRecord((yyvsp[0].rec));
     }
-#line 1253 "parser.tab.c"
+#line 1250 "parser.tab.c"
     break;
 
   case 5: /* func_decl: type ID LPAREN param_list_opt RPAREN LBRACE stmt_list RBRACE  */
-#line 87 "parser.y"
+#line 84 "parser.y"
                                                                  {
         const char *rt = strcmp((yyvsp[-6].str_val), "main")==0 ? "int" : map_type((yyvsp[-7].rec)->code);
         char *h = cat(rt, " ", (yyvsp[-6].str_val), "(", (yyvsp[-4].rec)->code);
@@ -1261,11 +1258,11 @@ yyreduce:
         (yyval.rec) = createRecord(b, ""); free(h); free(b);
         freeRecord((yyvsp[-7].rec)); free((yyvsp[-6].str_val)); freeRecord((yyvsp[-4].rec)); freeRecord((yyvsp[-1].rec));
     }
-#line 1265 "parser.tab.c"
+#line 1262 "parser.tab.c"
     break;
 
   case 6: /* func_decl: type ID LPAREN param_list_opt RPAREN SEMICOLON  */
-#line 94 "parser.y"
+#line 91 "parser.y"
                                                    {
         const char *rt = map_type((yyvsp[-5].rec)->code);
         char *h = cat(rt, " ", (yyvsp[-4].str_val), "(", (yyvsp[-2].rec)->code);
@@ -1273,37 +1270,37 @@ yyreduce:
         (yyval.rec) = createRecord(p, ""); free(h); free(p);
         freeRecord((yyvsp[-5].rec)); free((yyvsp[-4].str_val)); freeRecord((yyvsp[-2].rec));
     }
-#line 1277 "parser.tab.c"
+#line 1274 "parser.tab.c"
     break;
 
   case 7: /* param_list_opt: %empty  */
-#line 104 "parser.y"
+#line 101 "parser.y"
                   { (yyval.rec) = createRecord("", ""); }
-#line 1283 "parser.tab.c"
+#line 1280 "parser.tab.c"
     break;
 
   case 10: /* param_list: param_list COMMA param  */
-#line 110 "parser.y"
+#line 107 "parser.y"
                              {
         char *s = cat((yyvsp[-2].rec)->code, ", ", (yyvsp[0].rec)->code, "", "");
         (yyval.rec) = createRecord(s, ""); free(s);
         freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec));
     }
-#line 1293 "parser.tab.c"
+#line 1290 "parser.tab.c"
     break;
 
   case 11: /* param: type ID  */
-#line 118 "parser.y"
+#line 115 "parser.y"
             {
         char *s = cat((yyvsp[-1].rec)->code, " ", (yyvsp[0].str_val), "", "");
         (yyval.rec) = createRecord(s, (yyvsp[-1].rec)->opt1);
         free(s); freeRecord((yyvsp[-1].rec)); free((yyvsp[0].str_val));
     }
-#line 1303 "parser.tab.c"
+#line 1300 "parser.tab.c"
     break;
 
   case 12: /* param: REF type ID  */
-#line 123 "parser.y"
+#line 120 "parser.y"
                 {
         const char* c_type = map_type((yyvsp[-1].rec)->code);
         char* ptr_type = cat(c_type, "*", "", "", "");
@@ -1313,38 +1310,38 @@ yyreduce:
         free(ptr_type); free(param_decl); free(lang_type);
         freeRecord((yyvsp[-1].rec)); free((yyvsp[0].str_val));
     }
-#line 1317 "parser.tab.c"
+#line 1314 "parser.tab.c"
     break;
 
   case 13: /* stmt_list: %empty  */
-#line 135 "parser.y"
+#line 132 "parser.y"
                   { (yyval.rec) = createRecord("", ""); }
-#line 1323 "parser.tab.c"
+#line 1320 "parser.tab.c"
     break;
 
   case 14: /* stmt_list: stmt_list stmt  */
-#line 136 "parser.y"
+#line 133 "parser.y"
                      {
         char *s = cat((yyvsp[-1].rec)->code, (yyvsp[0].rec)->code, "\n", "", "");
         (yyval.rec) = createRecord(s, ""); free(s);
         freeRecord((yyvsp[-1].rec)); freeRecord((yyvsp[0].rec));
     }
-#line 1333 "parser.tab.c"
+#line 1330 "parser.tab.c"
     break;
 
   case 22: /* var_decl_stmt: type ID SEMICOLON  */
-#line 154 "parser.y"
+#line 151 "parser.y"
                       {
         char *s = cat("    ", (yyvsp[-2].rec)->code, " ", (yyvsp[-1].str_val), ";");
         (yyval.rec) = createRecord(s, ""); free(s);
         insertSymbol((yyvsp[-1].str_val), (yyvsp[-2].rec)->opt1);
         freeRecord((yyvsp[-2].rec)); free((yyvsp[-1].str_val));
     }
-#line 1344 "parser.tab.c"
+#line 1341 "parser.tab.c"
     break;
 
   case 23: /* var_decl_stmt: type ID ARROW_LEFT expr SEMICOLON  */
-#line 160 "parser.y"
+#line 157 "parser.y"
                                       {
         char *p = cat("    ", (yyvsp[-4].rec)->code, " ", (yyvsp[-3].str_val), " = ");
         char *s = cat(p, (yyvsp[-1].rec)->code, ";", "", "");
@@ -1352,11 +1349,11 @@ yyreduce:
         insertSymbol((yyvsp[-3].str_val), (yyvsp[-4].rec)->opt1);
         freeRecord((yyvsp[-4].rec)); free((yyvsp[-3].str_val)); freeRecord((yyvsp[-1].rec));
     }
-#line 1356 "parser.tab.c"
+#line 1353 "parser.tab.c"
     break;
 
   case 24: /* lvalue: ID  */
-#line 170 "parser.y"
+#line 167 "parser.y"
        { 
         const char* type = lookupSymbol((yyvsp[0].str_val));
         // Se o tipo começa com "ref", é um parâmetro por referência
@@ -1370,11 +1367,11 @@ yyreduce:
         }
         free((yyvsp[0].str_val)); 
     }
-#line 1374 "parser.tab.c"
+#line 1371 "parser.tab.c"
     break;
 
   case 25: /* lvalue: MUL ID  */
-#line 183 "parser.y"
+#line 180 "parser.y"
            {
         char* deref_code = cat("*", (yyvsp[0].str_val), "", "", "");
         const char* ptr_type = lookupSymbol((yyvsp[0].str_val));
@@ -1382,30 +1379,30 @@ yyreduce:
         (yyval.rec) = createRecord(deref_code, base_type);
         free(deref_code); free(base_type); free((yyvsp[0].str_val));
     }
-#line 1386 "parser.tab.c"
+#line 1383 "parser.tab.c"
     break;
 
   case 26: /* assignment_stmt: lvalue ARROW_LEFT expr SEMICOLON  */
-#line 193 "parser.y"
+#line 190 "parser.y"
                                      {
         char *s = cat("    ", (yyvsp[-3].rec)->code, " = ", (yyvsp[-1].rec)->code, ";");
         (yyval.rec) = createRecord(s, ""); free(s);
         freeRecord((yyvsp[-3].rec)); freeRecord((yyvsp[-1].rec));
     }
-#line 1396 "parser.tab.c"
+#line 1393 "parser.tab.c"
     break;
 
   case 27: /* func_call_stmt: func_call SEMICOLON  */
-#line 201 "parser.y"
+#line 198 "parser.y"
                         {
         char *s = cat("    ", (yyvsp[-1].rec)->code, ";", "", "");
         (yyval.rec) = createRecord(s, ""); free(s); freeRecord((yyvsp[-1].rec));
     }
-#line 1405 "parser.tab.c"
+#line 1402 "parser.tab.c"
     break;
 
   case 28: /* print_stmt: PRINT expr SEMICOLON  */
-#line 208 "parser.y"
+#line 205 "parser.y"
                          {
         char *s;
         if (strcmp((yyvsp[-1].rec)->opt1, "Float") == 0) {
@@ -1423,20 +1420,20 @@ yyreduce:
         }
         (yyval.rec) = createRecord(s, ""); free(s); freeRecord((yyvsp[-1].rec));
     }
-#line 1427 "parser.tab.c"
+#line 1424 "parser.tab.c"
     break;
 
   case 29: /* return_stmt: RETURN expr SEMICOLON  */
-#line 228 "parser.y"
+#line 225 "parser.y"
                           {
         char *s = cat("    return ", (yyvsp[-1].rec)->code, ";", "", "");
         (yyval.rec) = createRecord(s, ""); free(s); freeRecord((yyvsp[-1].rec));
     }
-#line 1436 "parser.tab.c"
+#line 1433 "parser.tab.c"
     break;
 
   case 30: /* if_stmt: IF LPAREN expr RPAREN LBRACE stmt_list RBRACE  */
-#line 235 "parser.y"
+#line 232 "parser.y"
                                                   {
         char *lend = new_label();
         char *cond = cat("    if (!(", (yyvsp[-4].rec)->code, ")) goto ", lend, ";");
@@ -1445,11 +1442,11 @@ yyreduce:
         code = cat(code, ":", "", "", "");
         (yyval.rec) = createRecord(code, ""); free(cond); free(lend); freeRecord((yyvsp[-4].rec)); freeRecord((yyvsp[-1].rec));
     }
-#line 1449 "parser.tab.c"
+#line 1446 "parser.tab.c"
     break;
 
   case 31: /* while_stmt: WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE  */
-#line 246 "parser.y"
+#line 243 "parser.y"
                                                      {
         char *lbegin = new_label();
         char *lend   = new_label();
@@ -1462,113 +1459,113 @@ yyreduce:
         tmp = cat(tmp, back, "\n", end, "");
         (yyval.rec) = createRecord(tmp, ""); free(tmp); freeRecord((yyvsp[-4].rec)); freeRecord((yyvsp[-1].rec));
     }
-#line 1466 "parser.tab.c"
+#line 1463 "parser.tab.c"
     break;
 
   case 32: /* type: INT  */
-#line 261 "parser.y"
+#line 258 "parser.y"
              { (yyval.rec) = createRecord("int", "Int"); }
-#line 1472 "parser.tab.c"
+#line 1469 "parser.tab.c"
     break;
 
   case 33: /* type: FLOAT  */
-#line 262 "parser.y"
+#line 259 "parser.y"
              { (yyval.rec) = createRecord("float", "Float"); }
-#line 1478 "parser.tab.c"
+#line 1475 "parser.tab.c"
     break;
 
   case 34: /* type: UNIT  */
-#line 263 "parser.y"
+#line 260 "parser.y"
              { (yyval.rec) = createRecord("void", "Unit"); }
-#line 1484 "parser.tab.c"
+#line 1481 "parser.tab.c"
     break;
 
   case 35: /* type: RATIONAL  */
-#line 264 "parser.y"
+#line 261 "parser.y"
              { (yyval.rec) = createRecord("rational_t", "Rational"); }
-#line 1490 "parser.tab.c"
+#line 1487 "parser.tab.c"
     break;
 
   case 36: /* type: MATRIX  */
-#line 265 "parser.y"
+#line 262 "parser.y"
              { (yyval.rec) = createRecord("matrix_t*", "Matrix"); }
-#line 1496 "parser.tab.c"
+#line 1493 "parser.tab.c"
     break;
 
   case 37: /* type: BST  */
-#line 266 "parser.y"
+#line 263 "parser.y"
              { (yyval.rec) = createRecord("TreeNode*", "BST"); }
-#line 1502 "parser.tab.c"
+#line 1499 "parser.tab.c"
     break;
 
   case 38: /* expr: expr PLUS expr  */
-#line 270 "parser.y"
+#line 267 "parser.y"
                        { char *s=cat("(", (yyvsp[-2].rec)->code, " + ", (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(yyvsp[-2].rec)->opt1); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1508 "parser.tab.c"
+#line 1505 "parser.tab.c"
     break;
 
   case 39: /* expr: expr MINUS expr  */
-#line 271 "parser.y"
+#line 268 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " - ", (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(yyvsp[-2].rec)->opt1); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1514 "parser.tab.c"
+#line 1511 "parser.tab.c"
     break;
 
   case 40: /* expr: expr MUL expr  */
-#line 272 "parser.y"
+#line 269 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " * ", (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(yyvsp[-2].rec)->opt1); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1520 "parser.tab.c"
+#line 1517 "parser.tab.c"
     break;
 
   case 41: /* expr: expr DIV expr  */
-#line 273 "parser.y"
+#line 270 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " / ", (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(yyvsp[-2].rec)->opt1); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1526 "parser.tab.c"
+#line 1523 "parser.tab.c"
     break;
 
   case 42: /* expr: expr LT expr  */
-#line 274 "parser.y"
+#line 271 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " < ",  (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(char*)"Int"); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1532 "parser.tab.c"
+#line 1529 "parser.tab.c"
     break;
 
   case 43: /* expr: expr LE expr  */
-#line 275 "parser.y"
+#line 272 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " <= ", (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(char*)"Int"); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1538 "parser.tab.c"
+#line 1535 "parser.tab.c"
     break;
 
   case 44: /* expr: expr GT expr  */
-#line 276 "parser.y"
+#line 273 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " > ",  (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(char*)"Int"); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1544 "parser.tab.c"
+#line 1541 "parser.tab.c"
     break;
 
   case 45: /* expr: expr GE expr  */
-#line 277 "parser.y"
+#line 274 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " >= ", (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(char*)"Int"); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1550 "parser.tab.c"
+#line 1547 "parser.tab.c"
     break;
 
   case 46: /* expr: expr EQ expr  */
-#line 278 "parser.y"
+#line 275 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " == ", (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(char*)"Int"); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1556 "parser.tab.c"
+#line 1553 "parser.tab.c"
     break;
 
   case 47: /* expr: expr NE expr  */
-#line 279 "parser.y"
+#line 276 "parser.y"
                       { char *s=cat("(", (yyvsp[-2].rec)->code, " != ", (yyvsp[0].rec)->code, ")"); (yyval.rec)=createRecord(s,(char*)"Int"); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1562 "parser.tab.c"
+#line 1559 "parser.tab.c"
     break;
 
   case 48: /* expr: LPAREN expr RPAREN  */
-#line 280 "parser.y"
+#line 277 "parser.y"
                          { (yyval.rec) = (yyvsp[-1].rec); }
-#line 1568 "parser.tab.c"
+#line 1565 "parser.tab.c"
     break;
 
   case 49: /* expr: AMPERSAND ID  */
-#line 281 "parser.y"
+#line 278 "parser.y"
                    {
         char* addr_expr = cat("&", (yyvsp[0].str_val), "", "", "");
         const char* base_type = lookupSymbol((yyvsp[0].str_val));
@@ -1576,11 +1573,11 @@ yyreduce:
         (yyval.rec) = createRecord(addr_expr, ptr_type_name);
         free(addr_expr); free(ptr_type_name); free((yyvsp[0].str_val));
     }
-#line 1580 "parser.tab.c"
+#line 1577 "parser.tab.c"
     break;
 
   case 50: /* expr: ID  */
-#line 288 "parser.y"
+#line 285 "parser.y"
                         { 
         const char *t = lookupSymbol((yyvsp[0].str_val)); 
         // Se o tipo começa com "ref", é um parâmetro por referência
@@ -1594,29 +1591,29 @@ yyreduce:
         }
         free((yyvsp[0].str_val)); 
     }
-#line 1598 "parser.tab.c"
+#line 1595 "parser.tab.c"
     break;
 
   case 51: /* expr: INT_LIT  */
-#line 301 "parser.y"
+#line 298 "parser.y"
                         { char b[32]; sprintf(b,"%d",(yyvsp[0].int_val)); (yyval.rec)=createRecord(strdup(b),(char*)"Int"); }
-#line 1604 "parser.tab.c"
+#line 1601 "parser.tab.c"
     break;
 
   case 52: /* expr: FLOAT_LIT  */
-#line 302 "parser.y"
+#line 299 "parser.y"
                         { char b[32]; sprintf(b,"%f",(yyvsp[0].float_val)); (yyval.rec)=createRecord(strdup(b),(char*)"Float"); }
-#line 1610 "parser.tab.c"
+#line 1607 "parser.tab.c"
     break;
 
   case 53: /* expr: func_call  */
-#line 303 "parser.y"
+#line 300 "parser.y"
                         { (yyval.rec) = (yyvsp[0].rec); }
-#line 1616 "parser.tab.c"
+#line 1613 "parser.tab.c"
     break;
 
   case 54: /* func_call: ID LPAREN arg_list_opt RPAREN  */
-#line 307 "parser.y"
+#line 304 "parser.y"
                                   {
         char *s = cat((yyvsp[-3].str_val), "(", (yyvsp[-1].rec)->code, ")", "");
         const char *type = "Unit"; // Tipo padrão para funções sem retorno (void)
@@ -1642,23 +1639,23 @@ yyreduce:
         (yyval.rec) = createRecord(s, (char*)type);
         free(s); free((yyvsp[-3].str_val)); freeRecord((yyvsp[-1].rec));
     }
-#line 1646 "parser.tab.c"
+#line 1643 "parser.tab.c"
     break;
 
   case 55: /* arg_list_opt: %empty  */
-#line 335 "parser.y"
+#line 332 "parser.y"
                   { (yyval.rec) = createRecord("", ""); }
-#line 1652 "parser.tab.c"
+#line 1649 "parser.tab.c"
     break;
 
   case 58: /* arg_list: arg_list COMMA expr  */
-#line 341 "parser.y"
+#line 338 "parser.y"
                           { char *s=cat((yyvsp[-2].rec)->code, ", ", (yyvsp[0].rec)->code, "", ""); (yyval.rec)=createRecord(s,""); free(s); freeRecord((yyvsp[-2].rec)); freeRecord((yyvsp[0].rec)); }
-#line 1658 "parser.tab.c"
+#line 1655 "parser.tab.c"
     break;
 
 
-#line 1662 "parser.tab.c"
+#line 1659 "parser.tab.c"
 
       default: break;
     }
@@ -1851,7 +1848,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 344 "parser.y"
+#line 341 "parser.y"
 
 
 // --- CÓDIGO AUXILIAR ---

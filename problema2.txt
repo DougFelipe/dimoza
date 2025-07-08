@@ -1,35 +1,57 @@
-Unit main () {
-    Int c1 <- 0;
-    Int c2 <- 0;
-    Int c3 <- 0;
-    Int c4 <- 0;
+Unit main() {
+    // 1. Declara e inicializa os contadores para cada intervalo.
+    Int c_0_25   <- 0;
+    Int c_26_50  <- 0;
+    Int c_51_75  <- 0;
+    Int c_76_100 <- 0;
+    
+    // 2. Declara variáveis de trabalho.
+    Float numero_lido <- 0.0;
+    Int continuar <- 1;       // Flag para controlar o loop.
+    Int condicao_valida <- 0; // Flag para checar as condições do intervalo.
 
-    Float in <- read();
+    // 3. Inicia o loop para ler os números.
+    while (continuar == 1) {
+        // A cada iteração, lê um novo número.
+        numero_lido <- read();
 
-    while (in >= 0) {
-        if (in <= 25) {
-            c1 <- c1 + 1;
+        // Verifica se o número lido é o sinal de parada (negativo).
+        if (numero_lido < 0.0) {
+            // Se for, muda a flag para sair do loop na próxima iteração.
+            continuar <- 0;
         }
-        if (in > 25) {
-            if (in <= 50) {
-                c2 <- c2 + 1;
-            }
+
+        // A lógica de contagem só é executada se não for para parar.
+        if (continuar == 1) {
+            // --- Lógica para o intervalo [0, 25] ---
+            condicao_valida <- 1; // Começa assumindo que a condição é verdadeira.
+            if (numero_lido > 25.0) { condicao_valida <- 0; }
+            // A checagem de numero_lido < 0.0 é desnecessária aqui.
+            if (condicao_valida == 1) { c_0_25 <- c_0_25 + 1; }
+
+            // --- Lógica para o intervalo [26, 50] ---
+            condicao_valida <- 1;
+            if (numero_lido < 26.0) { condicao_valida <- 0; }
+            if (numero_lido > 50.0) { condicao_valida <- 0; }
+            if (condicao_valida == 1) { c_26_50 <- c_26_50 + 1; }
+
+            // --- Lógica para o intervalo [51, 75] ---
+            condicao_valida <- 1;
+            if (numero_lido < 51.0) { condicao_valida <- 0; }
+            if (numero_lido > 75.0) { condicao_valida <- 0; }
+            if (condicao_valida == 1) { c_51_75 <- c_51_75 + 1; }
+
+            // --- Lógica para o intervalo [76, 100] ---
+            condicao_valida <- 1;
+            if (numero_lido < 76.0) { condicao_valida <- 0; }
+            if (numero_lido > 100.0) { condicao_valida <- 0; }
+            if (condicao_valida == 1) { c_76_100 <- c_76_100 + 1; }
         }
-        if (in > 50) {
-            if (in <= 75) {
-                c3 <- c3 + 1;
-            }
-        }
-        if (in > 75) {
-            if (in <= 100) {
-                c4 <- c4 + 1;
-            }
-        }
-        in <- read();
     }
 
-    print c1;
-    print c2;
-    print c3;
-    print c4;
+    // 4. Imprime os resultados finais.
+    print c_0_25;
+    print c_26_50;
+    print c_51_75;
+    print c_76_100;
 }

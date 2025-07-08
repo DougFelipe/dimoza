@@ -64,9 +64,6 @@ program:
             "#include <stdio.h>\n"
             "#include <stdlib.h>\n"
             "#include <stdbool.h>\n"
-            "#include \"lib/rational.h\"\n"
-            "#include \"lib/matrix.h\"\n"
-            "#include \"lib/bst.h\"\n\n" // Inclui a biblioteca de BST
             "float read() { float v; if (scanf(\"%%f\", &v)!=1) return -1.0f; return v;}\n\n"
         );
         fprintf(yyout, "%s\n", $1->code);
