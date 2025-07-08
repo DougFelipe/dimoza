@@ -215,7 +215,8 @@ print_stmt:
         } else if (strcmp($2->opt1, "BST") == 0) {
             s = cat("    print_bst_by_level(", $2->code, ");", "", "");
         } else {
-            s = cat("    /* tipo desconhecido para print */", "", "", "", "");
+            // Padrão: assume Float para valores desconhecidos
+            s = cat("    printf(\"%f\\n\", ", $2->code, ");", "", "");
         }
         $$ = createRecord(s, ""); free(s); freeRecord($2);
     }

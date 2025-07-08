@@ -15,7 +15,6 @@ Unit main() {
         // A cada iteração, lê um novo número.
         numero_lido <- read();
 
-<<<<<<< HEAD
         // Verifica se o número lido é o sinal de parada (negativo).
         if (numero_lido < 0.0) {
             // Se for, muda a flag para sair do loop na próxima iteração.
@@ -48,20 +47,6 @@ Unit main() {
             if (numero_lido > 100.0) { condicao_valida <- 0; }
             if (condicao_valida == 1) { c_76_100 <- c_76_100 + 1; }
         }
-=======
-    while (in >= 0) {
-        if(in <= 25) { c1 <- c1 + 1; }
-        if(in > 25) {
-           if(in <= 50) { c2 <- c2 + 1; }
-           if(in > 50) {
-              if(in <= 75) { c3 <- c3 + 1; }
-              if(in > 75) {
-                  if(in <= 100) { c4 <- c4 + 1; }
-              }
-           }
-        }
-        in <- read();
->>>>>>> 58920764e26a7f096c1b7770f66768331c132d26
     }
 
     // 4. Imprime os resultados finais.

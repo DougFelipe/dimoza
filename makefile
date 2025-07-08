@@ -15,7 +15,7 @@ LEX_SRC = scanner.l
 LEX_C   = lex.yy.c
 
 # Lista de todas as bibliotecas auxiliares
-LIBSRC  = ./lib/record.c ./lib/symbol_table.c ./lib/rational.c ./lib/matrix.c ./lib/mdc.c ./lib/bst.c
+LIBSRC  = ./lib/record.c ./lib/symbol_table.c
 
 # --- Regras ---
 .PHONY: all clean

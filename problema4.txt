@@ -1,31 +1,232 @@
+Int mdc(Int a, Int b) {
+    if (a < 0) {
+        a <- 0 - a;
+    }
+    if (b < 0) {
+        b <- 0 - b;
+    }
+    
+    while (a != b) {
+        if (a > b) {
+            a <- a - b;
+        }
+        if (b > a) {
+            b <- b - a;
+        }
+    }
+    return a;
+}
+
+Unit simplificar(ref Int num, ref Int den) {
+    Int d <- mdc(num, den);
+    if (d < 0) {
+        d <- 0 - d;
+    }
+    num <- num / d;
+    den <- den / d;
+    
+    if (den < 0) {
+        num <- 0 - num;
+        den <- 0 - den;
+    }
+}
+
+Unit create_rational(Int a, Int b, ref Int numerador, ref Int denominador) {
+    if (b == 0) {
+        print 0 - 1;
+    }
+    if (b != 0) {
+        numerador <- a;
+        denominador <- b;
+        simplificar(&numerador, &denominador);
+    }
+}
+
+Int are_equal(Int num1, Int den1, Int num2, Int den2) {
+    Int n1 <- num1;
+    Int d1 <- den1;
+    Int n2 <- num2;
+    Int d2 <- den2;
+    
+    simplificar(&n1, &d1);
+    simplificar(&n2, &d2);
+    
+    if (n1 == n2) {
+        if (d1 == d2) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+Unit add_rational(Int num1, Int den1, Int num2, Int den2, ref Int result_num, ref Int result_den) {
+    result_num <- (num1 * den2) + (num2 * den1);
+    result_den <- den1 * den2;
+    simplificar(&result_num, &result_den);
+}
+
+Unit negate_rational(Int num, Int den, ref Int result_num, ref Int result_den) {
+    result_num <- 0 - num;
+    result_den <- den;
+}
+
+Unit subtract_rational(Int num1, Int den1, Int num2, Int den2, ref Int result_num, ref Int result_den) {
+    Int neg_num2 <- 0 - num2;
+    add_rational(num1, den1, neg_num2, den2, &result_num, &result_den);
+}
+
+Unit multiply_rational(Int num1, Int den1, Int num2, Int den2, ref Int result_num, ref Int result_den) {
+    result_num <- num1 * num2;
+    result_den <- den1 * den2;
+    simplificar(&result_num, &result_den);
+}
+
+Unit inverse_rational(Int num, Int den, ref Int result_num, ref Int result_den) {
+    if (num == 0) {
+        print 0 - 1;
+    }
+    if (num != 0) {
+        result_num <- den;
+        result_den <- num;
+        simplificar(&result_num, &result_den);
+    }
+}
+
+Unit divide_rational(Int num1, Int den1, Int num2, Int den2, ref Int result_num, ref Int result_den) {
+    if (num2 == 0) {
+        print 0 - 1;
+    }
+    if (num2 != 0) {
+        multiply_rational(num1, den1, den2, num2, &result_num, &result_den);
+    }
+}
+
+Unit print_rational(Int num, Int den) {
+    if (den == 1) {
+        print num;
+    }
+    if (den != 1) {
+        print num;
+        print 999999;
+        print den;
+    }
+}
+
 Unit main() {
-    // A) Teste de criação
-    Rational r1 <- create_rational(5, 10); // será simplificado para 1/2
-    Rational r2 <- create_rational(1, 3);
-    print r1; // Saída esperada: 1/2
-    print r2; // Saída esperada: 1/3
-
-    // B) Teste de igualdade
-    Rational r3 <- create_rational(2, 4);
-    Int iguais <- are_equal(r1, r3); // r1 (1/2) e r3 (1/2) são iguais
-    print iguais; // Saída esperada: 1 (true)
+    print 1000;
     
-    // C) Teste das operações
-    Rational r_soma <- add(r1, r2); // 1/2 + 1/3 = 5/6
-    print r_soma; // Saída esperada: 5/6
+    print 1100;
     
-    Rational r_sub <- subtract(r1, r2); // 1/2 - 1/3 = 1/6
-    print r_sub; // Saída esperada: 1/6
-
-    Rational r_neg <- negate(r1); // - (1/2)
-    print r_neg; // Saída esperada: -1/2
+    Int r1_num; Int r1_den;
+    Int r2_num; Int r2_den;
+    Int r3_num; Int r3_den;
     
-    Rational r_mult <- multiply(r1, r2); // 1/2 * 1/3 = 1/6
-    print r_mult; // Saída esperada: 1/6
+    create_rational(3, 4, &r1_num, &r1_den);
+    print 1101;
+    print_rational(r1_num, r1_den);
     
-    Rational r_inv <- inverse(create_rational(3, 5)); // inverso de 3/5
-    print r_inv; // Saída esperada: 5/3
+    create_rational(6, 8, &r2_num, &r2_den);
+    print 1102;
+    print_rational(r2_num, r2_den);
     
-    Rational r_div <- divide(r1, r2); // (1/2) / (1/3) = 3/2
-    print r_div; // Saída esperada: 3/2
+    create_rational(0 - 5, 2, &r3_num, &r3_den);
+    print 1103;
+    print_rational(r3_num, r3_den);
+    
+    print 1200;
+    
+    Int igual1 <- are_equal(r1_num, r1_den, r2_num, r2_den);
+    print 1201;
+    print igual1;
+    
+    Int igual2 <- are_equal(r1_num, r1_den, r3_num, r3_den);
+    print 1202;
+    print igual2;
+    
+    print 1300;
+    
+    Int soma_num; Int soma_den;
+    Int sub_num; Int sub_den;
+    Int mult_num; Int mult_den;
+    Int div_num; Int div_den;
+    Int neg_num; Int neg_den;
+    Int inv_num; Int inv_den;
+    
+    add_rational(r1_num, r1_den, r3_num, r3_den, &soma_num, &soma_den);
+    print 1301;
+    print_rational(soma_num, soma_den);
+    
+    negate_rational(r1_num, r1_den, &neg_num, &neg_den);
+    print 1302;
+    print_rational(neg_num, neg_den);
+    
+    subtract_rational(r1_num, r1_den, r3_num, r3_den, &sub_num, &sub_den);
+    print 1303;
+    print_rational(sub_num, sub_den);
+    
+    multiply_rational(r1_num, r1_den, r3_num, r3_den, &mult_num, &mult_den);
+    print 1304;
+    print_rational(mult_num, mult_den);
+    
+    inverse_rational(r1_num, r1_den, &inv_num, &inv_den);
+    print 1305;
+    print_rational(inv_num, inv_den);
+    
+    divide_rational(r1_num, r1_den, r3_num, r3_den, &div_num, &div_den);
+    print 1306;
+    print_rational(div_num, div_den);
+    
+    print 1400;
+    
+    print 1401;
+    Float user_float1 <- read();
+    Int user_num1 <- user_float1;
+    print 1402;
+    Float user_float2 <- read();
+    Int user_den1 <- user_float2;
+    
+    print 1403;
+    Float user_float3 <- read();
+    Int user_num2 <- user_float3;
+    print 1404;
+    Float user_float4 <- read();
+    Int user_den2 <- user_float4;
+    
+    Int erro <- 0;
+    if (user_den1 == 0) {
+        print 0 - 1;
+        erro <- 1;
+    }
+    if (user_den2 == 0) {
+        print 0 - 1;
+        erro <- 1;
+    }
+    
+    if (erro == 0) {
+        simplificar(&user_num1, &user_den1);
+        simplificar(&user_num2, &user_den2);
+        
+        print 1405;
+        print_rational(user_num1, user_den1);
+        
+        print 1406;
+        print_rational(user_num2, user_den2);
+        
+        Int user_soma_num; Int user_soma_den;
+        Int user_mult_num; Int user_mult_den;
+        
+        add_rational(user_num1, user_den1, user_num2, user_den2, &user_soma_num, &user_soma_den);
+        print 1407;
+        print_rational(user_soma_num, user_soma_den);
+        
+        multiply_rational(user_num1, user_den1, user_num2, user_den2, &user_mult_num, &user_mult_den);
+        print 1408;
+        print_rational(user_mult_num, user_mult_den);
+        
+        Int user_igual <- are_equal(user_num1, user_den1, user_num2, user_den2);
+        print 1409;
+        print user_igual;
+        
+        print 1500;
+    }
 }
