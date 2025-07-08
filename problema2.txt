@@ -7,23 +7,15 @@ Unit main () {
     Float in <- read();
 
     while (in >= 0) {
-        if (in <= 25) {
-            c1 <- c1 + 1;
-        }
-        if (in > 25) {
-            if (in <= 50) {
-                c2 <- c2 + 1;
-            }
-        }
-        if (in > 50) {
-            if (in <= 75) {
-                c3 <- c3 + 1;
-            }
-        }
-        if (in > 75) {
-            if (in <= 100) {
-                c4 <- c4 + 1;
-            }
+        if(in <= 25) { c1 <- c1 + 1; }
+        if(in > 25) {
+           if(in <= 50) { c2 <- c2 + 1; }
+           if(in > 50) {
+              if(in <= 75) { c3 <- c3 + 1; }
+              if(in > 75) {
+                  if(in <= 100) { c4 <- c4 + 1; }
+              }
+           }
         }
         in <- read();
     }
