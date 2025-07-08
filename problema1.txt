@@ -1,13 +1,17 @@
-Unit main () {
-  
-  // Declarando as variáveis
-  Float x <- 2.5;
-  Float y <- 1.2;
-  Int c <- 3;
+// Função principal do programa
+Unit main() {
+    // 1. Declara e inicializa as variáveis com os valores dados.
+    //    Usamos o tipo Float, que é nativo da sua linguagem.
+    Float x <- 3.0;
+    Float y <- 2.5;
+    Int c <- 10;
 
-  // Calcula x² – y + c
-  Float resultado <- (x * x) - y + c;
+    // 2. Avalia a expressão x*x - y + c
+    //    A sua linguagem suporta operações aritméticas diretas.
+    //    O compilador gerará código C que lida com a conversão de tipos
+    //    (Int para Float) automaticamente na expressão.
+    Float resultado <- x * x - y + c;
 
-  // Imprime o resultado
-  print resultado;
+    // 3. Imprime o resultado final na tela.
+    print resultado;
 }
