@@ -1,0 +1,26 @@
+Unit main() {
+    Int A <- 0;
+    Int B <- 0;
+
+    print_string "Digite o valor para A:";
+    Float input_A <- read();
+    A <- input_A;
+
+    print_string "Digite o valor para B:";
+    Float input_B <- read();
+    B <- input_B;
+
+    if (A > 5) {
+        print_string "primeiro if";
+        if (B > 5) {
+            print_string "segundo if";
+        }else {
+        print_string "primeiro else";
+    }
+    } else {
+        print_string "no else";
+    }
+
+    print_string "Fim do teste.";
+}
+

@@ -1,6 +1,4 @@
 // Teste de erro léxico - caractere inválido
 Unit main() {
-    Int x <- 5;
-    Int y @ 10;  // Erro: caractere '@' inválido
-    print x;
+    print_string "Olá;
 }

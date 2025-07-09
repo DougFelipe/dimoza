@@ -45,7 +45,7 @@ char* deref_if_needed(struct record* rec) {
 }
 
 // Declaração dos tokens
-%token UNIT FLOAT INT RATIONAL MATRIX BST PRINT PRINT_STRING RETURN IF WHILE
+%token UNIT FLOAT INT RATIONAL MATRIX BST PRINT PRINT_STRING RETURN IF WHILE ELSE
 %token REF AMPERSAND
 %token ARROW_LEFT PLUS MINUS MUL DIV
 %token LT LE GT GE EQ NE
@@ -259,15 +259,40 @@ return_stmt:
     }
 ;
 
-if_stmt:
+if_stmt: 
     IF LPAREN expr RPAREN LBRACE stmt_list RBRACE {
         char *val = deref_if_needed($3);
         char *lend = new_label();
         char *cond = cat("    if (!(", val, ")) goto ", lend, ";");
         char *body = $6->code;
-        char *code = cat(cond, "\n", body, "\n", lend);
-        code = cat(code, ":", "", "", "");
-        $$ = createRecord(code, ""); free(cond); free(lend); free(val); freeRecord($3); freeRecord($6);
+        char *code = cat(cond, "\n", body, "\n", ""); // Alterado aqui
+        char *final_code = cat(code, lend, ":", "", ""); // Nova chamada cat
+        free(code); // Liberar a string temporária 'code'
+        $$ = createRecord(final_code, ""); free(cond); free(lend); free(val); freeRecord($3); freeRecord($6); free(final_code);
+    }
+    | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE {
+        char *val = deref_if_needed($3);
+        char *lels = new_label();
+        char *lend = new_label();
+        char *cond = cat("    if (!(", val, ")) goto ", lels, ";");
+        char *if_body = $6->code;
+        char *else_body = $10->code;
+        
+        // As chamadas cat problemáticas foram divididas em múltiplas chamadas:
+        char *if_part_tmp = cat(cond, "\n", if_body, "", "");
+        char *goto_lend_tmp = cat("\n    goto ", lend, ";\n", "", "");
+        char *if_else_code_start = cat(if_part_tmp, goto_lend_tmp, "", "", "");
+        free(if_part_tmp);
+        free(goto_lend_tmp);
+    
+        char *else_part_tmp = cat(lels, ":\n", else_body, "", "");
+        char *lend_label_tmp = cat("\n", lend, ":", "", "");
+        char *final_if_else_code = cat(if_else_code_start, else_part_tmp, lend_label_tmp, "", "");
+        free(if_else_code_start);
+        free(else_part_tmp);
+        free(lend_label_tmp);
+    
+        $$ = createRecord(final_if_else_code, ""); free(val); free(lels); free(lend); freeRecord($3); freeRecord($6); freeRecord($10); free(final_if_else_code);
     }
 ;
 
