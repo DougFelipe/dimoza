@@ -1,0 +1,158 @@
+// problema6.txt
+// Versão corrigida para usar print_inline para formatação correta.
+
+// Define a estrutura de um nó da árvore.
+struct TreeNode {
+    Int key;
+    Int level;
+    TreeNode left;
+    TreeNode right;
+}
+
+// Protótipos das funções.
+TreeNode insert(TreeNode node, Int key, Int current_level);
+Unit find_min(TreeNode root);
+Unit find_max(TreeNode root);
+Unit print_level_order(TreeNode root);
+Int get_height(TreeNode node);
+Unit print_given_level(TreeNode node, Int level);
+Int max(Int a, Int b);
+
+
+// Insere uma nova chave na árvore.
+TreeNode insert(TreeNode node, Int key, Int current_level) {
+    if (node == null) {
+        TreeNode new_node;
+        new_node <- new TreeNode;
+        new_node.key <- key;
+        new_node.level <- current_level;
+        new_node.left <- null;
+        new_node.right <- null;
+        return new_node;
+    }
+
+    if (key < node.key) {
+        node.left <- insert(node.left, key, current_level + 1);
+        return node;
+    }
+    
+    node.right <- insert(node.right, key, current_level + 1);
+    return node;
+}
+
+// Encontra e imprime a chave mínima e seu nível.
+Unit find_min(TreeNode root) {
+    TreeNode current;
+    current <- root;
+
+    while (current.left != null) {
+        current <- current.left;
+    }
+
+    print_string "Chave minima encontrada:";
+    print(current.key);
+    print_string "Nivel da chave minima:";
+    print(current.level);
+}
+
+// Encontra e imprime a chave máxima e seu nível.
+Unit find_max(TreeNode root) {
+    TreeNode current;
+    current <- root;
+
+    while (current.right != null) {
+        current <- current.right;
+    }
+
+    print_string "Chave maxima encontrada:";
+    print(current.key);
+    print_string "Nivel da chave maxima:";
+    print(current.level);
+}
+
+// --- Funções para Impressão Nível a Nível ---
+
+Unit print_level_order(TreeNode root) {
+    Int h;
+    Int i;
+    h <- get_height(root);
+    i <- 0;
+    while (i < h) {
+        print_given_level(root, i);
+        print_string "\n"; // Adiciona a quebra de linha após cada nível
+        i <- i + 1;
+    }
+}
+
+// Imprime todos os nós em um determinado nível.
+Unit print_given_level(TreeNode node, Int level) {
+    if (node == null) {
+        return;
+    }
+    if (level == 0) {
+        print_inline(node.key); // Usa print_inline para não quebrar a linha
+        return;
+    }
+    print_given_level(node.left, level - 1);
+    print_given_level(node.right, level - 1);
+}
+
+// Calcula a altura da árvore.
+Int get_height(TreeNode node) {
+    if (node == null) {
+        return 0;
+    }
+    Int left_height;
+    Int right_height;
+    left_height <- get_height(node.left);
+    right_height <- get_height(node.right);
+    return 1 + max(left_height, right_height);
+}
+
+// Função auxiliar para retornar o maior de dois inteiros.
+Int max(Int a, Int b) {
+    if (a > b) {
+        return a;
+    }
+    return b;
+}
+
+
+// --- Programa Principal ---
+Unit main() {
+    TreeNode root;
+    root <- null;
+
+    print_string "===================================";
+    print_string "A) Construindo a Arvore Binaria de Busca...";
+    print_string "Valores a serem inseridos: 50, 30, 70, 20, 40, 60, 80";
+    print_string "===================================";
+
+    root <- insert(root, 50, 0);
+    root <- insert(root, 30, 0);
+    root <- insert(root, 70, 0);
+    root <- insert(root, 20, 0);
+    root <- insert(root, 40, 0);
+    root <- insert(root, 60, 0);
+    root <- insert(root, 80, 0);
+
+    print_string "Arvore construida com sucesso!";
+    print_string "\n";
+
+    print_string "===================================";
+    print_string "B) Encontrando a chave minima...";
+    print_string "===================================";
+    find_min(root);
+    print_string "\n";
+
+    print_string "===================================";
+    print_string "C) Encontrando a chave maxima...";
+    print_string "===================================";
+    find_max(root);
+    print_string "\n";
+
+    print_string "===================================";
+    print_string "D) Imprimindo a arvore nivel a nivel...";
+    print_string "===================================";
+    print_level_order(root);
+}

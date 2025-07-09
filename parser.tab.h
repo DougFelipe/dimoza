@@ -61,33 +61,38 @@ extern int yydebug;
     MATRIX = 262,                  /* MATRIX  */
     BST = 263,                     /* BST  */
     PRINT = 264,                   /* PRINT  */
-    PRINT_STRING = 265,            /* PRINT_STRING  */
-    RETURN = 266,                  /* RETURN  */
-    IF = 267,                      /* IF  */
-    WHILE = 268,                   /* WHILE  */
-    REF = 269,                     /* REF  */
-    AMPERSAND = 270,               /* AMPERSAND  */
-    ARROW_LEFT = 271,              /* ARROW_LEFT  */
-    PLUS = 272,                    /* PLUS  */
-    MINUS = 273,                   /* MINUS  */
-    MUL = 274,                     /* MUL  */
-    DIV = 275,                     /* DIV  */
-    LT = 276,                      /* LT  */
-    LE = 277,                      /* LE  */
-    GT = 278,                      /* GT  */
-    GE = 279,                      /* GE  */
-    EQ = 280,                      /* EQ  */
-    NE = 281,                      /* NE  */
-    SEMICOLON = 282,               /* SEMICOLON  */
-    LPAREN = 283,                  /* LPAREN  */
-    RPAREN = 284,                  /* RPAREN  */
-    LBRACE = 285,                  /* LBRACE  */
-    RBRACE = 286,                  /* RBRACE  */
-    COMMA = 287,                   /* COMMA  */
-    ID = 288,                      /* ID  */
-    INT_LIT = 289,                 /* INT_LIT  */
-    FLOAT_LIT = 290,               /* FLOAT_LIT  */
-    STRING_LIT = 291               /* STRING_LIT  */
+    PRINT_INLINE = 265,            /* PRINT_INLINE  */
+    PRINT_STRING = 266,            /* PRINT_STRING  */
+    RETURN = 267,                  /* RETURN  */
+    IF = 268,                      /* IF  */
+    WHILE = 269,                   /* WHILE  */
+    STRUCT = 270,                  /* STRUCT  */
+    NEW = 271,                     /* NEW  */
+    NULL_LIT = 272,                /* NULL_LIT  */
+    DOT = 273,                     /* DOT  */
+    REF = 274,                     /* REF  */
+    AMPERSAND = 275,               /* AMPERSAND  */
+    ARROW_LEFT = 276,              /* ARROW_LEFT  */
+    PLUS = 277,                    /* PLUS  */
+    MINUS = 278,                   /* MINUS  */
+    MUL = 279,                     /* MUL  */
+    DIV = 280,                     /* DIV  */
+    LT = 281,                      /* LT  */
+    LE = 282,                      /* LE  */
+    GT = 283,                      /* GT  */
+    GE = 284,                      /* GE  */
+    EQ = 285,                      /* EQ  */
+    NE = 286,                      /* NE  */
+    SEMICOLON = 287,               /* SEMICOLON  */
+    LPAREN = 288,                  /* LPAREN  */
+    RPAREN = 289,                  /* RPAREN  */
+    LBRACE = 290,                  /* LBRACE  */
+    RBRACE = 291,                  /* RBRACE  */
+    COMMA = 292,                   /* COMMA  */
+    ID = 293,                      /* ID  */
+    INT_LIT = 294,                 /* INT_LIT  */
+    FLOAT_LIT = 295,               /* FLOAT_LIT  */
+    STRING_LIT = 296               /* STRING_LIT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -103,7 +108,7 @@ union YYSTYPE
     char *str_val;
     struct record *rec;
 
-#line 107 "parser.tab.h"
+#line 112 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

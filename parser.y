@@ -6,27 +6,27 @@
 #include "./lib/record.h"
 #include "./lib/symbol_table.h"
 
-// Protótipos de funções
+// Protótipos
 int yylex(void);
 void yyerror(const char *s);
 char* cat(const char *s1, const char *s2, const char *s3, const char *s4, const char *s5);
 const char* map_type(const char* o);
 
-// Variáveis externas do Flex
+// Variáveis externas
 extern int yylineno;
 extern char *yytext;
 extern FILE *yyin, *yyout;
 
-// Contador para gerar labels
+// Variáveis Globais para o Parser
 static int label_count = 0;
+static char* current_struct_name = NULL; // Guarda o nome da struct sendo definida
+
 char *new_label() {
     char buf[32];
     sprintf(buf, "L%d", label_count++);
     return strdup(buf);
 }
 
-// Função auxiliar que adiciona um '*' na frente do código se for uma referência.
-// Retorna uma nova string alocada que deve ser liberada.
 char* deref_if_needed(struct record* rec) {
     if (rec && rec->opt1 && strncmp(rec->opt1, "ref", 3) == 0) {
         return cat("*", rec->code, "", "", "");
@@ -36,7 +36,7 @@ char* deref_if_needed(struct record* rec) {
 
 %}
 
-// Definição da união para os valores semânticos
+// União e Tokens
 %union {
     int int_val;
     float float_val;
@@ -44,8 +44,8 @@ char* deref_if_needed(struct record* rec) {
     struct record *rec;
 }
 
-// Declaração dos tokens
-%token UNIT FLOAT INT RATIONAL MATRIX BST PRINT PRINT_STRING RETURN IF WHILE
+%token UNIT FLOAT INT RATIONAL MATRIX BST PRINT PRINT_INLINE PRINT_STRING RETURN IF WHILE
+%token STRUCT NEW NULL_LIT DOT
 %token REF AMPERSAND
 %token ARROW_LEFT PLUS MINUS MUL DIV
 %token LT LE GT GE EQ NE
@@ -55,15 +55,17 @@ char* deref_if_needed(struct record* rec) {
 %token <float_val> FLOAT_LIT
 %token <str_val> STRING_LIT
 
-// Definição dos tipos para os não-terminais
+// Tipos dos não-terminais
 %type <rec> program decl_list func_decl param_list_opt param_list param
-%type <rec> stmt_list stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt print_string_stmt return_stmt if_stmt while_stmt
+%type <rec> stmt_list stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt print_inline_stmt print_string_stmt return_stmt if_stmt while_stmt
 %type <rec> type lvalue expr func_call arg_list_opt arg_list
+%type <rec> struct_decl field_list field
 
-// Definição da precedência e associatividade dos operadores
+// Precedência
 %left PLUS MINUS
 %left MUL DIV
 %left LT LE GT GE EQ NE
+%left DOT
 
 %%
 
@@ -84,12 +86,58 @@ program:
 
 decl_list:
       func_decl
+    | struct_decl
     | decl_list func_decl {
         char *s = cat($1->code, "\n\n", $2->code, "", "");
         $$ = createRecord(s, ""); free(s);
         freeRecord($1); freeRecord($2);
     }
+    | decl_list struct_decl {
+        char *s = cat($1->code, "\n", $2->code, "", "");
+        $$ = createRecord(s, ""); free(s);
+        freeRecord($1); freeRecord($2);
+    }
 ;
+
+// --- Declaração de Struct ---
+
+struct_decl:
+    STRUCT ID LBRACE field_list RBRACE {
+        current_struct_name = strdup($2);
+        char *typedef_def = cat("typedef struct ", $2, " {\n", $4->code, "} ");
+        char *complete_def = cat(typedef_def, $2, ";\n", "", "");
+        $$ = createRecord(complete_def, "");
+        free(typedef_def); free(complete_def); free($2); freeRecord($4);
+        free(current_struct_name);
+        current_struct_name = NULL;
+    }
+;
+
+field_list:
+      field
+    | field_list field {
+        char *s = cat($1->code, $2->code, "", "", "");
+        $$ = createRecord(s, ""); free(s);
+        freeRecord($1); freeRecord($2);
+    }
+;
+
+field:
+    type ID SEMICOLON {
+        if (current_struct_name && $1->opt1 && strcmp($1->opt1, current_struct_name) == 0) {
+            char* self_ptr_field = cat("    struct ", current_struct_name, "* ", $2, ";\n");
+            $$ = createRecord(self_ptr_field, "");
+            free(self_ptr_field);
+        } else {
+            char *s = cat("    ", $1->code, " ", $2, ";\n");
+            $$ = createRecord(s, "");
+            free(s);
+        }
+        freeRecord($1); free($2);
+    }
+;
+
+// --- Funções e Statements ---
 
 func_decl:
     type ID LPAREN param_list_opt RPAREN LBRACE stmt_list RBRACE {
@@ -154,6 +202,7 @@ stmt:
       var_decl_stmt
     | assignment_stmt
     | print_stmt
+    | print_inline_stmt
     | print_string_stmt
     | return_stmt
     | func_call_stmt
@@ -178,34 +227,12 @@ var_decl_stmt:
     }
 ;
 
-lvalue:
-    ID { 
-        const char* type = lookupSymbol($1);
-        if (type && strncmp(type, "ref", 3) == 0) {
-            char* ref_code = cat("REF_", $1, "", "", "");
-            $$ = createRecord(ref_code, strdup(type));
-            free(ref_code);
-        } else {
-            $$ = createRecord($1, strdup(type ? type : "Unknown"));
-        }
-        free($1); 
-    }
-  | MUL ID {
-        char* deref_code = cat("*", $2, "", "", "");
-        const char* ptr_type = lookupSymbol($2);
-        char* base_type = strdup(ptr_type ? ptr_type + 3 : "Unknown");
-        $$ = createRecord(deref_code, base_type);
-        free(deref_code); free(base_type); free($2);
-    }
-;
-
 assignment_stmt:
     lvalue ARROW_LEFT expr SEMICOLON {
         char *s;
         char* val = deref_if_needed($3);
-        if (strncmp($1->code, "REF_", 4) == 0) {
-            char* var_name = $1->code + 4;
-            s = cat("    *", var_name, " = ", val, ";");
+        if ($1->opt1 && strncmp($1->opt1, "ref", 3) == 0) {
+            s = cat("    *", $1->code, " = ", val, ";");
         } else {
             s = cat("    ", $1->code, " = ", val, ";");
         }
@@ -233,6 +260,15 @@ print_stmt:
             s = cat("    printf(\"unsupported_print_type\\n\");", "", "", "", "");
         }
         $$ = createRecord(s, ""); free(s); free(val); freeRecord($2);
+    }
+;
+
+print_inline_stmt:
+    PRINT_INLINE expr SEMICOLON {
+        char* val = deref_if_needed($2);
+        char* s = cat("    printf(\"%d \", ", val, ");", "", "");
+        $$ = createRecord(s, "");
+        free(s); free(val); freeRecord($2);
     }
 ;
 
@@ -287,6 +323,8 @@ while_stmt:
     }
 ;
 
+// --- Tipos e Expressões ---
+
 type:
     INT      { $$ = createRecord("int", "Int"); }
   | FLOAT    { $$ = createRecord("float", "Float"); }
@@ -294,94 +332,51 @@ type:
   | RATIONAL { $$ = createRecord("rational_t", "Rational"); }
   | MATRIX   { $$ = createRecord("matrix_t*", "Matrix"); }
   | BST      { $$ = createRecord("TreeNode*", "BST"); }
+  | ID       { 
+        char *ptr_type = cat($1, "*", "", "", "");
+        $$ = createRecord(ptr_type, $1); 
+        free(ptr_type); free($1);
+    }
 ;
 
+lvalue:
+    ID { 
+        const char* type = lookupSymbol($1);
+        $$ = createRecord($1, strdup(type ? type : "Unknown"));
+        free($1); 
+    }
+  | lvalue DOT ID {
+        char* member_access = cat($1->code, "->", $3, "", "");
+        const char* field_type = "Int"; // Assume Int por padrão
+        if (strcmp($3, "left") == 0 || strcmp($3, "right") == 0) {
+            field_type = $1->opt1;
+        }
+        $$ = createRecord(member_access, strdup(field_type));
+        free(member_access); free($3);
+        freeRecord($1);
+    }
+;
 
-/******************************************************************
-* CORREÇÃO: Removida a macro #define. A lógica foi expandida
-* manualmente em cada regra de expressão abaixo.
-******************************************************************/
 expr:
-      expr PLUS expr   {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " + ", s3, ")");
-        $$ = createRecord(s, $1->opt1);
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr MINUS expr  {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " - ", s3, ")");
-        $$ = createRecord(s, $1->opt1);
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr MUL expr    {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " * ", s3, ")");
-        $$ = createRecord(s, $1->opt1);
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr DIV expr    {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " / ", s3, ")");
-        $$ = createRecord(s, $1->opt1);
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr LT expr     {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " < ", s3, ")");
-        $$ = createRecord(s, "Int");
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr LE expr     {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " <= ", s3, ")");
-        $$ = createRecord(s, "Int");
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr GT expr     {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " > ", s3, ")");
-        $$ = createRecord(s, "Int");
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr GE expr     {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " >= ", s3, ")");
-        $$ = createRecord(s, "Int");
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr EQ expr     {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " == ", s3, ")");
-        $$ = createRecord(s, "Int");
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
-    | expr NE expr     {
-        char* s1 = deref_if_needed($1);
-        char* s3 = deref_if_needed($3);
-        char *s = cat("(", s1, " != ", s3, ")");
-        $$ = createRecord(s, "Int");
-        free(s); free(s1); free(s3);
-        freeRecord($1); freeRecord($3);
-      }
+      expr PLUS expr   { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " + ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr MINUS expr  { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " - ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr MUL expr    { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " * ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr DIV expr    { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " / ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr LT expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " < ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr LE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " <= ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr GT expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " > ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr GE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " >= ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr EQ expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " == ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | expr NE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " != ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+    | NEW ID {
+        char* malloc_call = cat("malloc(sizeof(struct ", $2, "))", "", "");
+        $$ = createRecord(malloc_call, $2);
+        free(malloc_call); free($2);
+    }
+    | NULL_LIT {
+        $$ = createRecord("NULL", "null");
+    }
+    | lvalue { $$ = $1; } 
     | LPAREN expr RPAREN { $$ = $2; }
     | AMPERSAND ID {
         char* addr_expr = cat("&", $2, "", "", "");
@@ -389,11 +384,6 @@ expr:
         char* ptr_type_name = cat("ref", base_type, "", "", "");
         $$ = createRecord(addr_expr, ptr_type_name);
         free(addr_expr); free(ptr_type_name); free($2);
-    }
-    | ID {
-        const char *t = lookupSymbol($1);
-        $$ = createRecord($1, strdup(t ? t : "Unknown"));
-        free($1); 
     }
     | INT_LIT          { char b[32]; sprintf(b,"%d",$1); $$=createRecord(strdup(b),(char*)"Int"); }
     | FLOAT_LIT        { char b[32]; sprintf(b,"%f",$1); $$=createRecord(strdup(b),(char*)"Float"); }
@@ -404,9 +394,12 @@ func_call:
     ID LPAREN arg_list_opt RPAREN {
         char *s = cat($1, "(", $3->code, ")", "");
         const char *type = "Unit"; 
-        if (strcmp($1, "resto_divisao") == 0) {
+        if (strcmp($1, "get_height") == 0 || strcmp($1, "max") == 0) {
             type = "Int";
+        } else if (strcmp($1, "insert") == 0) {
+            type = "TreeNode";
         }
+        // Adicione aqui outras funções com retorno para compatibilidade
         $$ = createRecord(s, (char*)type);
         free(s); free($1); freeRecord($3);
     }
@@ -420,7 +413,6 @@ arg_list_opt:
 arg_list:
       expr
     | arg_list COMMA expr { 
-        // Na lista de argumentos, não dereferenciamos, apenas passamos o código.
         char *s=cat($1->code, ", ", $3->code, "", ""); 
         $$=createRecord(s,""); 
         free(s); 
@@ -448,6 +440,10 @@ char* cat(const char *s1, const char *s2, const char *s3, const char *s4, const 
 const char* map_type(const char* o) {
     if (strcmp(o, "Int") == 0) return "int";
     if (strcmp(o, "Float") == 0) return "float";
+    if (strcmp(o, "Unit") == 0) return "void";
+    if (strcmp(o, "Rational") == 0) return "rational_t";
+    if (strcmp(o, "Matrix") == 0) return "matrix_t*";
+    if (strcmp(o, "BST") == 0) return "TreeNode*";
     return "void";
 }
 
