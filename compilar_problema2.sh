@@ -36,14 +36,14 @@ echo "Código C gerado com sucesso em saida_problema2.c"
 
 # Compilar o código C gerado
 echo "Compilando código C para executável..."
-gcc -o problema2_exec.exe saida_problema2.c
+gcc -o problema2.exe saida_problema2.c
 
 if [ $? -ne 0 ]; then
     echo "Erro na compilação do código C!"
     exit 1
 fi
 
-echo "Executável criado: problema2_exec.exe"
+echo "Executável criado: problema2.exe"
 
 # Executar o programa
 echo ""
@@ -63,15 +63,15 @@ if [ -f "entrada_problema2.txt" ]; then
     cat entrada_problema2.txt
     echo ""
     echo "Executando com entrada automática..."
-    ./problema2_exec.exe < entrada_problema2.txt
+    ./problema2.exe < entrada_problema2.txt
     
     echo ""
     echo "=== EXECUÇÃO INTERATIVA ==="
     echo "Agora você pode testar interativamente (digite -1 para sair):"
-    ./problema2_exec.exe
+    ./problema2.exe
 else
     echo "Arquivo entrada_problema2.txt não encontrado. Executando modo interativo:"
-    ./problema2_exec.exe
+    ./problema2.exe
 fi
 
 echo ""

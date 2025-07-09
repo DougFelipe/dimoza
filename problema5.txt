@@ -1,22 +1,61 @@
-// Script de teste para o Problema 5: MDC com passagem por referência
+// problema5.txt
+// Lógica recursiva simplificada para o algoritmo de Euclides.
 
-// Declara o PROTÓTIPO da função 'mdc', indicando que sua implementação
-// está em uma biblioteca externa. Note o ponto e vírgula no final.
+// Protótipo da função mdc para permitir a chamada recursiva.
 Unit mdc(Int n, Int m, ref Int r);
 
+// Função auxiliar para calcular o resto da divisão inteira (n % m).
+Int resto_divisao(Int n, Int m) {
+    // Evita divisão por zero no C gerado.
+    if (m == 0) {
+        return n; // Se m=0, o resto é n.
+    }
+    return n - (m * (n / m));
+}
+
+// Subprograma que calcula o MDC de forma recursiva.
+Unit mdc(Int n, Int m, ref Int r) {
+    // Caso base: se m é 0, o mdc é n.
+    if (m == 0) {
+        r <- n;
+        return;
+    }
+
+    // Passo recursivo: chama mdc com (m, n % m).
+    // O resultado será propagado de volta pela referência 'r'.
+    mdc(m, resto_divisao(n, m), r);
+}
+
+// Programa Principal
 Unit main() {
-    // Declara a variável que receberá o resultado
-    Int resultado <- 0;
+    Int num1;
+    Int num2;
+    Int resultado_mdc;
 
-    // --- Teste 1: MDC de 48 e 18 ---
-    mdc(48, 18, &resultado);
-    print resultado; // Output esperado: 6
+    // Primeiro caso de teste
+    num1 <- 54;
+    num2 <- 24;
 
-    // --- Teste 2: MDC de 101 e 10 ---
-    mdc(101, 10, &resultado);
-    print resultado; // Output esperado: 1
+    print_string "===================================";
+    print_string "Calculando o MDC de 54 e 24 (Recursivo)";
+    print_string "===================================";
 
-    // --- Teste 3: MDC de 50 e 25 ---
-    mdc(50, 25, &resultado);
-    print resultado; // Output esperado: 25
+    mdc(num1, num2, &resultado_mdc);
+
+    print_string "O resultado e:";
+    print(resultado_mdc); // Deve imprimir 6
+
+    // Segundo caso de teste
+    num1 <- 105;
+    num2 <- 30;
+    
+    print_string "";
+    print_string "===================================";
+    print_string "Calculando o MDC de 105 e 30 (Recursivo)";
+    print_string "===================================";
+
+    mdc(num1, num2, &resultado_mdc);
+    
+    print_string "O resultado e:";
+    print(resultado_mdc); // Deve imprimir 15
 }

@@ -5,7 +5,7 @@
 echo "=== COMPILANDO PROBLEMA 3: OPERACOES COM MATRIZES ==="
 
 # Limpar arquivos antigos
-rm -f problema3_exec.exe problema3.c
+rm -f problema3.exe problema3.c
 
 # Compilar usando o compilador customizado
 echo "Compilando problema3.txt..."
@@ -21,15 +21,15 @@ echo "Arquivo problema3.c gerado com sucesso!"
 
 # Compilar o código C gerado
 echo "Compilando o código C gerado..."
-gcc -o problema3_exec.exe problema3.c lib/*.c
+gcc -o problema3.exe problema3.c lib/*.c
 
 # Verificar se a compilação C foi bem-sucedida
-if [ ! -f "problema3_exec.exe" ]; then
+if [ ! -f "problema3.exe" ]; then
     echo "ERRO: Compilação C falhou - executável não foi gerado"
     exit 1
 fi
 
-echo "Executável problema3_exec.exe gerado com sucesso!"
+echo "Executável problema3.exe gerado com sucesso!"
 
 # Executar o programa
 echo ""
@@ -37,7 +37,7 @@ echo "=== EXECUTANDO PROBLEMA 3 ==="
 echo ""
 
 # Executar com entrada fornecida
-./problema3_exec.exe < entrada_problema3.txt
+./problema3.exe < entrada_problema3.txt
 
 echo ""
 echo "=== EXECUCAO CONCLUIDA ==="
