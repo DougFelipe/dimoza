@@ -19,6 +19,7 @@
 "ref"           { return REF; }
 
 "print"         { return PRINT; }
+"print_string"  { return PRINT_STRING; }
 "return"        { return RETURN; }
 "if"            { return IF; }
 "while"         { return WHILE; }
@@ -45,6 +46,7 @@
 
 [0-9]+\.[0-9]+  { yylval.float_val = atof(yytext); return FLOAT_LIT; }
 [0-9]+          { yylval.int_val   = atoi(yytext); return INT_LIT; }
+\"[^\"]*\"       { yylval.str_val = strdup(yytext); return STRING_LIT; }
 [a-zA-Z_][a-zA-Z0-9_]* { yylval.str_val = strdup(yytext); return ID; }
 
 [ \t\r\n]+      { }

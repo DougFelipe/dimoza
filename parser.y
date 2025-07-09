@@ -35,7 +35,7 @@ char *new_label() {
 }
 
 // Declaração dos tokens
-%token UNIT FLOAT INT RATIONAL MATRIX BST PRINT RETURN IF WHILE
+%token UNIT FLOAT INT RATIONAL MATRIX BST PRINT PRINT_STRING RETURN IF WHILE
 %token REF AMPERSAND
 %token ARROW_LEFT PLUS MINUS MUL DIV
 %token LT LE GT GE EQ NE
@@ -43,10 +43,11 @@ char *new_label() {
 %token <str_val> ID
 %token <int_val> INT_LIT
 %token <float_val> FLOAT_LIT
+%token <str_val> STRING_LIT
 
 // Definição dos tipos para os não-terminais
 %type <rec> program decl_list func_decl param_list_opt param_list param
-%type <rec> stmt_list stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt return_stmt if_stmt while_stmt
+%type <rec> stmt_list stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt print_string_stmt return_stmt if_stmt while_stmt
 %type <rec> type lvalue expr func_call arg_list_opt arg_list
 
 // Definição da precedência e associatividade dos operadores
@@ -115,14 +116,16 @@ param:
     type ID {
         char *s = cat($1->code, " ", $2, "", "");
         $$ = createRecord(s, $1->opt1);
+        insertSymbol($2, $1->opt1);
         free(s); freeRecord($1); free($2);
     }
   | REF type ID {
-        const char* c_type = map_type($2->code);
+        const char* c_type = map_type($2->opt1);
         char* ptr_type = cat(c_type, "*", "", "", "");
         char* param_decl = cat(ptr_type, " ", $3, "", "");
         char* lang_type = cat("ref", $2->opt1, "", "", "");
         $$ = createRecord(param_decl, lang_type);
+        insertSymbol($3, lang_type);
         free(ptr_type); free(param_decl); free(lang_type);
         freeRecord($2); free($3);
     }
@@ -141,6 +144,7 @@ stmt:
       var_decl_stmt
     | assignment_stmt
     | print_stmt
+    | print_string_stmt
     | return_stmt
     | func_call_stmt
     | if_stmt
@@ -166,14 +170,13 @@ var_decl_stmt:
 lvalue:
     ID { 
         const char* type = lookupSymbol($1);
-        // Se o tipo começa com "ref", é um parâmetro por referência
-        if (strncmp(type, "ref", 3) == 0) {
-            char* deref_code = cat("*", $1, "", "", "");
-            char* base_type = strdup(type + 3); // Remove "ref" do início
-            $$ = createRecord(deref_code, base_type);
-            free(deref_code); free(base_type);
+        if (type && strncmp(type, "ref", 3) == 0) {
+            // Para parâmetros de referência, marcamos com prefixo especial
+            char* ref_code = cat("REF_", $1, "", "", "");
+            $$ = createRecord(ref_code, strdup(type));
+            free(ref_code);
         } else {
-            $$ = createRecord($1, strdup(type));
+            $$ = createRecord($1, strdup(type ? type : "Unknown"));
         }
         free($1); 
     }
@@ -188,7 +191,16 @@ lvalue:
 
 assignment_stmt:
     lvalue ARROW_LEFT expr SEMICOLON {
-        char *s = cat("    ", $1->code, " = ", $3->code, ";");
+        char *s;
+        
+        // Se o lvalue tem prefixo REF_, é um parâmetro de referência
+        if (strncmp($1->code, "REF_", 4) == 0) {
+            char* var_name = $1->code + 4; // Remove prefixo REF_
+            s = cat("    *", var_name, " = ", $3->code, ";");
+        } else {
+            s = cat("    ", $1->code, " = ", $3->code, ";");
+        }
+        
         $$ = createRecord(s, ""); free(s);
         freeRecord($1); freeRecord($3);
     }
@@ -219,6 +231,20 @@ print_stmt:
             s = cat("    printf(\"%f\\n\", ", $2->code, ");", "", "");
         }
         $$ = createRecord(s, ""); free(s); freeRecord($2);
+    }
+;
+
+print_string_stmt:
+    PRINT_STRING STRING_LIT SEMICOLON {
+        // Remove as aspas da string literal
+        char *str = $2;
+        int len = strlen(str);
+        char *clean_str = malloc(len - 1);
+        strncpy(clean_str, str + 1, len - 2);
+        clean_str[len - 2] = '\0';
+        
+        char *s = cat("    printf(\"", clean_str, "\\n\");", "", "");
+        $$ = createRecord(s, ""); free(s); free(clean_str); free($2);
     }
 ;
 
