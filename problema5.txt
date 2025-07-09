@@ -2,10 +2,29 @@
 
 // Declara o PROTÓTIPO da função 'mdc', indicando que sua implementação
 // está em uma biblioteca externa. Note o ponto e vírgula no final.
-Unit mdc(Int n, Int m, ref Int r);
+Unit mdc(Int n, Int m, ref Int r) {
+    // O algoritmo continua enquanto os dois números não forem iguais.
+    while (n != m) {
+        // Se n for maior, subtrai m de n.
+        if (n > m) {
+            n <- n - m;
+        }
 
+        // Se m for maior, subtrai n de m.
+        // (Usar 'if' separado em vez de 'else' também funciona perfeitamente)
+        if (m > n) {
+            m <- m - n;
+        }
+    }
+
+    // Quando o loop termina, n (ou m) contém o MDC.
+    // O resultado é atribuído à variável de referência 'r'.
+    r <- n;
+}
+
+// A função principal que testa a implementação do mdc.
 Unit main() {
-    // Declara a variável que receberá o resultado
+    // Declara a variável que receberá o resultado por referência.
     Int resultado <- 0;
 
     // --- Teste 1: MDC de 48 e 18 ---
@@ -13,6 +32,7 @@ Unit main() {
     print resultado; // Output esperado: 6
 
     // --- Teste 2: MDC de 101 e 10 ---
+    // (Números primos entre si, o resultado deve ser 1)
     mdc(101, 10, &resultado);
     print resultado; // Output esperado: 1
 

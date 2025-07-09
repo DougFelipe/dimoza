@@ -1,0 +1,99 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+float read() { float v; if (scanf("%f", &v)!=1) return -1.0f; return v;}
+
+void printMatrix2x2(float a11, float a12, float a21, float a22) {
+    printf("%d\n", a11);
+    printf("%d\n", a12);
+    printf("%d\n", a21);
+    printf("%d\n", a22);
+}
+
+
+int main() {
+    float a11 = 1.000000;
+    float a12 = 2.000000;
+    float a21 = 3.000000;
+    float a22 = 4.000000;
+    float b11 = 5.000000;
+    float b12 = 6.000000;
+    float b21 = 7.000000;
+    float b22 = 8.000000;
+    printf("%f\n", 100.000000);
+    printMatrix2x2(a11, a12, a21, a22);
+    printf("%f\n", 200.000000);
+    printMatrix2x2(b11, b12, b21, b22);
+    printf("%f\n", 300.000000);
+    float s11 = (a11 + b11);
+    float s12 = (a12 + b12);
+    float s21 = (a21 + b21);
+    float s22 = (a22 + b22);
+    printMatrix2x2(s11, s12, s21, s22);
+    printf("%f\n", 400.000000);
+    float p11 = ((a11 * b11) + (a12 * b21));
+    float p12 = ((a11 * b12) + (a12 * b22));
+    float p21 = ((a21 * b11) + (a22 * b21));
+    float p22 = ((a21 * b12) + (a22 * b22));
+    printMatrix2x2(p11, p12, p21, p22);
+    float c11 = 1.000000;
+    float c12 = 2.000000;
+    float c13 = 3.000000;
+    float c21 = 4.000000;
+    float c22 = 5.000000;
+    float c23 = 6.000000;
+    float d11 = 7.000000;
+    float d12 = 8.000000;
+    float d21 = 9.000000;
+    float d22 = 10.000000;
+    float d31 = 11.000000;
+    float d32 = 12.000000;
+    printf("%f\n", 500.000000);
+    printf("%f\n", c11);
+    printf("%f\n", c12);
+    printf("%f\n", c13);
+    printf("%f\n", c21);
+    printf("%f\n", c22);
+    printf("%f\n", c23);
+    printf("%f\n", 600.000000);
+    printf("%f\n", d11);
+    printf("%f\n", d12);
+    printf("%f\n", d21);
+    printf("%f\n", d22);
+    printf("%f\n", d31);
+    printf("%f\n", d32);
+    printf("%f\n", 700.000000);
+    printf("%f\n", 800.000000);
+    float r11 = (((c11 * d11) + (c12 * d21)) + (c13 * d31));
+    float r12 = (((c11 * d12) + (c12 * d22)) + (c13 * d32));
+    float r21 = (((c21 * d11) + (c22 * d21)) + (c23 * d31));
+    float r22 = (((c21 * d12) + (c22 * d22)) + (c23 * d32));
+    printMatrix2x2(r11, r12, r21, r22);
+    printf("%f\n", 900.000000);
+    float e11 = read();
+    float e12 = read();
+    float e21 = read();
+    float e22 = read();
+    printf("%f\n", 1000.000000);
+    float f11 = read();
+    float f12 = read();
+    float f21 = read();
+    float f22 = read();
+    printf("%f\n", 1100.000000);
+    printMatrix2x2(e11, e12, e21, e22);
+    printf("%f\n", 1200.000000);
+    printMatrix2x2(f11, f12, f21, f22);
+    printf("%f\n", 1300.000000);
+    float se11 = (e11 + f11);
+    float se12 = (e12 + f12);
+    float se21 = (e21 + f21);
+    float se22 = (e22 + f22);
+    printMatrix2x2(se11, se12, se21, se22);
+    printf("%f\n", 1400.000000);
+    float pe11 = ((e11 * f11) + (e12 * f21));
+    float pe12 = ((e11 * f12) + (e12 * f22));
+    float pe21 = ((e21 * f11) + (e22 * f21));
+    float pe22 = ((e21 * f12) + (e22 * f22));
+    printMatrix2x2(pe11, pe12, pe21, pe22);
+}
+

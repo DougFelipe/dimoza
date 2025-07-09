@@ -1,0 +1,250 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+float read() { float v; if (scanf("%f", &v)!=1) return -1.0f; return v;}
+
+void mdc(int a, int b) {
+    if (!((a < 0))) goto L0;
+    a = (0 - a);
+
+L0:
+    if (!((b < 0))) goto L1;
+    b = (0 - b);
+
+L1:
+L4:
+    if (!((a != b))) goto L5;
+    if (!((a > b))) goto L2;
+    a = (a - b);
+
+L2:
+    if (!((b > a))) goto L3;
+    b = (b - a);
+
+L3:
+
+    goto L4;
+L5:
+    return a;
+}
+
+
+void simplificar(void* num, void* den) {
+    int d = mdc(num, den);
+    if (!((d < 0))) goto L6;
+    d = (0 - d);
+
+L6:
+    num = (num / d);
+    den = (den / d);
+    if (!((den < 0))) goto L7;
+    num = (0 - num);
+    den = (0 - den);
+
+L7:
+}
+
+
+void create_rational(int a, int b, void* numerador, void* denominador) {
+    if (!((b == 0))) goto L8;
+    printf("%d\n", (0 - 1));
+
+L8:
+    if (!((b != 0))) goto L9;
+    numerador = a;
+    denominador = b;
+    simplificar(&numerador, &denominador);
+
+L9:
+}
+
+
+void are_equal(int num1, int den1, int num2, int den2) {
+    int n1 = num1;
+    int d1 = den1;
+    int n2 = num2;
+    int d2 = den2;
+    simplificar(&n1, &d1);
+    simplificar(&n2, &d2);
+    if (!((n1 == n2))) goto L11;
+    if (!((d1 == d2))) goto L10;
+    return 1;
+
+L10:
+
+L11:
+    return 0;
+}
+
+
+void add_rational(int num1, int den1, int num2, int den2, void* result_num, void* result_den) {
+    result_num = ((num1 * den2) + (num2 * den1));
+    result_den = (den1 * den2);
+    simplificar(&result_num, &result_den);
+}
+
+
+void negate_rational(int num, int den, void* result_num, void* result_den) {
+    result_num = (0 - num);
+    result_den = den;
+}
+
+
+void subtract_rational(int num1, int den1, int num2, int den2, void* result_num, void* result_den) {
+    int neg_num2 = (0 - num2);
+    add_rational(num1, den1, neg_num2, den2, &result_num, &result_den);
+}
+
+
+void multiply_rational(int num1, int den1, int num2, int den2, void* result_num, void* result_den) {
+    result_num = (num1 * num2);
+    result_den = (den1 * den2);
+    simplificar(&result_num, &result_den);
+}
+
+
+void inverse_rational(int num, int den, void* result_num, void* result_den) {
+    if (!((num == 0))) goto L12;
+    printf("%d\n", (0 - 1));
+
+L12:
+    if (!((num != 0))) goto L13;
+    result_num = den;
+    result_den = num;
+    simplificar(&result_num, &result_den);
+
+L13:
+}
+
+
+void divide_rational(int num1, int den1, int num2, int den2, void* result_num, void* result_den) {
+    if (!((num2 == 0))) goto L14;
+    printf("%d\n", (0 - 1));
+
+L14:
+    if (!((num2 != 0))) goto L15;
+    multiply_rational(num1, den1, den2, num2, &result_num, &result_den);
+
+L15:
+}
+
+
+void print_rational(int num, int den) {
+    if (!((den == 1))) goto L16;
+    printf("%d\n", num);
+
+L16:
+    if (!((den != 1))) goto L17;
+    printf("%d\n", num);
+    printf("%d\n", 999999);
+    printf("%d\n", den);
+
+L17:
+}
+
+
+int main() {
+    printf("%d\n", 1000);
+    printf("%d\n", 1100);
+    int r1_num;
+    int r1_den;
+    int r2_num;
+    int r2_den;
+    int r3_num;
+    int r3_den;
+    create_rational(3, 4, &r1_num, &r1_den);
+    printf("%d\n", 1101);
+    print_rational(r1_num, r1_den);
+    create_rational(6, 8, &r2_num, &r2_den);
+    printf("%d\n", 1102);
+    print_rational(r2_num, r2_den);
+    create_rational((0 - 5), 2, &r3_num, &r3_den);
+    printf("%d\n", 1103);
+    print_rational(r3_num, r3_den);
+    printf("%d\n", 1200);
+    int igual1 = are_equal(r1_num, r1_den, r2_num, r2_den);
+    printf("%d\n", 1201);
+    printf("%d\n", igual1);
+    int igual2 = are_equal(r1_num, r1_den, r3_num, r3_den);
+    printf("%d\n", 1202);
+    printf("%d\n", igual2);
+    printf("%d\n", 1300);
+    int soma_num;
+    int soma_den;
+    int sub_num;
+    int sub_den;
+    int mult_num;
+    int mult_den;
+    int div_num;
+    int div_den;
+    int neg_num;
+    int neg_den;
+    int inv_num;
+    int inv_den;
+    add_rational(r1_num, r1_den, r3_num, r3_den, &soma_num, &soma_den);
+    printf("%d\n", 1301);
+    print_rational(soma_num, soma_den);
+    negate_rational(r1_num, r1_den, &neg_num, &neg_den);
+    printf("%d\n", 1302);
+    print_rational(neg_num, neg_den);
+    subtract_rational(r1_num, r1_den, r3_num, r3_den, &sub_num, &sub_den);
+    printf("%d\n", 1303);
+    print_rational(sub_num, sub_den);
+    multiply_rational(r1_num, r1_den, r3_num, r3_den, &mult_num, &mult_den);
+    printf("%d\n", 1304);
+    print_rational(mult_num, mult_den);
+    inverse_rational(r1_num, r1_den, &inv_num, &inv_den);
+    printf("%d\n", 1305);
+    print_rational(inv_num, inv_den);
+    divide_rational(r1_num, r1_den, r3_num, r3_den, &div_num, &div_den);
+    printf("%d\n", 1306);
+    print_rational(div_num, div_den);
+    printf("%d\n", 1400);
+    printf("%d\n", 1401);
+    float user_float1 = read();
+    int user_num1 = user_float1;
+    printf("%d\n", 1402);
+    float user_float2 = read();
+    int user_den1 = user_float2;
+    printf("%d\n", 1403);
+    float user_float3 = read();
+    int user_num2 = user_float3;
+    printf("%d\n", 1404);
+    float user_float4 = read();
+    int user_den2 = user_float4;
+    int erro = 0;
+    if (!((user_den1 == 0))) goto L18;
+    printf("%d\n", (0 - 1));
+    erro = 1;
+
+L18:
+    if (!((user_den2 == 0))) goto L19;
+    printf("%d\n", (0 - 1));
+    erro = 1;
+
+L19:
+    if (!((erro == 0))) goto L20;
+    simplificar(&user_num1, &user_den1);
+    simplificar(&user_num2, &user_den2);
+    printf("%d\n", 1405);
+    print_rational(user_num1, user_den1);
+    printf("%d\n", 1406);
+    print_rational(user_num2, user_den2);
+    int user_soma_num;
+    int user_soma_den;
+    int user_mult_num;
+    int user_mult_den;
+    add_rational(user_num1, user_den1, user_num2, user_den2, &user_soma_num, &user_soma_den);
+    printf("%d\n", 1407);
+    print_rational(user_soma_num, user_soma_den);
+    multiply_rational(user_num1, user_den1, user_num2, user_den2, &user_mult_num, &user_mult_den);
+    printf("%d\n", 1408);
+    print_rational(user_mult_num, user_mult_den);
+    int user_igual = are_equal(user_num1, user_den1, user_num2, user_den2);
+    printf("%d\n", 1409);
+    printf("%d\n", user_igual);
+    printf("%d\n", 1500);
+
+L20:
+}
+

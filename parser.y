@@ -45,6 +45,7 @@ char *new_label() {
 %token <float_val> FLOAT_LIT
 
 // Definição dos tipos para os não-terminais
+%type <rec> func_header
 %type <rec> program decl_list func_decl param_list_opt param_list param
 %type <rec> stmt_list stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt return_stmt if_stmt while_stmt
 %type <rec> type lvalue expr func_call arg_list_opt arg_list
@@ -81,19 +82,50 @@ decl_list:
 ;
 
 func_decl:
-    type ID LPAREN param_list_opt RPAREN LBRACE stmt_list RBRACE {
-        const char *rt = strcmp($2, "main")==0 ? "int" : map_type($1->code);
-        char *h = cat(rt, " ", $2, "(", $4->code);
-        char *b = cat(h, ") {\n", $7->code, "}\n", "");
-        $$ = createRecord(b, ""); free(h); free(b);
-        freeRecord($1); free($2); freeRecord($4); freeRecord($7);
+    // Uma função completa, com corpo
+    func_header LBRACE stmt_list RBRACE
+    {
+        // $1 contém o código do cabeçalho C (ex: "int main(void)")
+        // $3 contém o código do corpo da função
+        char* final_func = cat(($1)->code, " {\n", ($3)->code, "}\n", "");
+        $$ = createRecord(final_func, "");
+
+        // Libera a memória
+        free(final_func);
+        freeRecord($1);
+        freeRecord($3);
     }
-  | type ID LPAREN param_list_opt RPAREN SEMICOLON {
-        const char *rt = map_type($1->code);
-        char *h = cat(rt, " ", $2, "(", $4->code);
-        char *p = cat(h, ");\n", "", "", "");
-        $$ = createRecord(p, ""); free(h); free(p);
-        freeRecord($1); free($2); freeRecord($4);
+    // Um protótipo de função (apenas a declaração)
+    | func_header SEMICOLON
+    {
+        // O trabalho importante (inserir na tabela de símbolos) já foi feito em func_header.
+        // Apenas geramos o código C para o protótipo.
+        char* prototype_code = cat(($1)->code, ";\n", "", "", "");
+        $$ = createRecord(prototype_code, "");
+
+        free(prototype_code);
+        freeRecord($1);
+    }
+;
+
+func_header:
+    type ID LPAREN param_list_opt RPAREN
+    {
+        insertSymbol($2, $1->opt1);
+
+        const char *rt = strcmp($2, "main") == 0 ? "int" : map_type($1->opt1);
+
+        char *temp_header = cat(rt, " ", $2, "(", $4->code);
+
+        char *header_code = cat(temp_header, ")", "", "", "");
+
+        $$ = createRecord(header_code, $1->opt1);
+
+        free(temp_header);
+        free(header_code);
+        freeRecord($1);
+        free($2);
+        freeRecord($4);
     }
 ;
 
@@ -118,7 +150,7 @@ param:
         free(s); freeRecord($1); free($2);
     }
   | REF type ID {
-        const char* c_type = map_type($2->code);
+        const char* c_type = $2->code;
         char* ptr_type = cat(c_type, "*", "", "", "");
         char* param_decl = cat(ptr_type, " ", $3, "", "");
         char* lang_type = cat("ref", $2->opt1, "", "", "");
@@ -164,18 +196,18 @@ var_decl_stmt:
 ;
 
 lvalue:
-    ID { 
+    ID {
         const char* type = lookupSymbol($1);
-        // Se o tipo começa com "ref", é um parâmetro por referência
-        if (strncmp(type, "ref", 3) == 0) {
-            char* deref_code = cat("*", $1, "", "", "");
-            char* base_type = strdup(type + 3); // Remove "ref" do início
-            $$ = createRecord(deref_code, base_type);
-            free(deref_code); free(base_type);
+        if (type != NULL && strncmp(type, "ref", 3) == 0) {
+            const char* lang_base_type = type + 3;
+            const char* c_base_type = map_type(lang_base_type);
+            char* deref_code = cat("*(", c_base_type, "*)", $1, "");
+            $$ = createRecord(deref_code, strdup(lang_base_type));
+            free(deref_code);
         } else {
-            $$ = createRecord($1, strdup(type));
+            $$ = createRecord($1, strdup(type ? type : "Unknown"));
         }
-        free($1); 
+        free($1);
     }
   | MUL ID {
         char* deref_code = cat("*", $2, "", "", "");
@@ -294,7 +326,7 @@ expr:
         } else {
             $$ = createRecord($1, strdup(t));
         }
-        free($1); 
+        free($1);
     }
     | INT_LIT           { char b[32]; sprintf(b,"%d",$1); $$=createRecord(strdup(b),(char*)"Int"); }
     | FLOAT_LIT         { char b[32]; sprintf(b,"%f",$1); $$=createRecord(strdup(b),(char*)"Float"); }
@@ -304,28 +336,39 @@ expr:
 func_call:
     ID LPAREN arg_list_opt RPAREN {
         char *s = cat($1, "(", $3->code, ")", "");
-        const char *type = "Unit"; // Tipo padrão para funções sem retorno (void)
+
+        const char *type = lookupSymbol($1);
+
+        if (type == NULL) {
+            type = "Unit";
+        }
+        $$ = createRecord(s, (char*)type);
+
+        free(s);
+        free($1);
+        freeRecord($3);
+        //const char *type = "Unit";
 
         // Lógica para determinar o tipo de retorno das funções
-        if (strcmp($1, "create_rational") == 0 || strcmp($1, "add") == 0 ||
-            strcmp($1, "subtract") == 0 || strcmp($1, "multiply") == 0 ||
-            strcmp($1, "divide") == 0 || strcmp($1, "negate") == 0 ||
-            strcmp($1, "inverse") == 0) {
-            type = "Rational";
-        } else if (strcmp($1, "are_equal") == 0) {
-            type = "Int";
-        } else if (strcmp($1, "create_matrix") == 0 || strcmp($1, "add_matrices") == 0 ||
-                   strcmp($1, "multiply_matrices") == 0) {
-            type = "Matrix";
-        } else if (strcmp($1, "create_bst_from_sequence") == 0) {
-            type = "BST";
-        } else if (strcmp($1, "get_min_value") == 0 || strcmp($1, "get_min_level") == 0 ||
-                   strcmp($1, "get_max_value") == 0 || strcmp($1, "get_max_level") == 0) {
-            type = "Int";
-        }
-        
-        $$ = createRecord(s, (char*)type);
-        free(s); free($1); freeRecord($3);
+        //if (strcmp($1, "create_rational") == 0 || strcmp($1, "add") == 0 ||
+        //    strcmp($1, "subtract") == 0 || strcmp($1, "multiply") == 0 ||
+        //    strcmp($1, "divide") == 0 || strcmp($1, "negate") == 0 ||
+        //    strcmp($1, "inverse") == 0) {
+        //    type = "Rational";
+        //} else if (strcmp($1, "are_equal") == 0) {
+        //    type = "Int";
+        //} else if (strcmp($1, "create_matrix") == 0 || strcmp($1, "add_matrices") == 0 ||
+        //           strcmp($1, "multiply_matrices") == 0) {
+        //    type = "Matrix";
+        //} else if (strcmp($1, "create_bst_from_sequence") == 0) {
+        //    type = "BST";
+        //} else if (strcmp($1, "get_min_value") == 0 || strcmp($1, "get_min_level") == 0 ||
+        //           strcmp($1, "get_max_value") == 0 || strcmp($1, "get_max_level") == 0) {
+        //    type = "Int";
+        //}
+        //
+        //$$ = createRecord(s, (char*)type);
+        //free(s); free($1); freeRecord($3);
     }
 ;
 

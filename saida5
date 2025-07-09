@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+float read() { float v; if (scanf("%f", &v)!=1) return -1.0f; return v;}
+
+void resto(int a, int b, void* r) {
+    r = (a - (b * (a / b)));
+    return 0;
+}
+
+
+void mdc(int n, int m, void* r) {
+    int resto_div;
+    resto(m, n, &resto_div);
+    if (!((resto_div == 0))) goto L0;
+    r = n;
+    return 0;
+
+L0:
+    resto(n, m, &resto_div);
+    if (!((resto_div == 0))) goto L1;
+    r = m;
+    return 0;
+
+L1:
+    if (!((m > n))) goto L2;
+    resto(m, n, &resto_div);
+    mdc(n, resto_div, &r);
+    return 0;
+
+L2:
+    if (!((n > m))) goto L3;
+    resto(n, m, &resto_div);
+    mdc(resto_div, m, &r);
+    return 0;
+
+L3:
+    return 0;
+}
+
+
+int main() {
+    int n;
+    int m;
+    int resultado = 0;
+    int continuar = 1;
+L6:
+    if (!((continuar == 1))) goto L7;
+    n = read();
+    if (!((n < 0))) goto L4;
+    continuar = 0;
+
+L4:
+    m = read();
+    if (!((m < 0))) goto L5;
+    continuar = 0;
+
+L5:
+    mdc(n, m, &resultado);
+    printf("%d\n", resultado);
+
+    goto L6;
+L7:
+}
+
