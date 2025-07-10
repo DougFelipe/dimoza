@@ -16,14 +16,14 @@ TreeNode* insert(TreeNode* root, int value) {
     new_node->key = value;
     new_node->left = NULL;
     new_node->right = NULL;
-    printf("   ✅ Nó \n");
+    printf("   OK: Nó \n");
     printf("%d\n", value);
     printf(" inserido como nova raiz/folha\n");
     return new_node;
 
 L0:
     if (!((value < root->key))) goto L1;
-    printf("   🔄 \n");
+    printf("   --> \n");
     printf("%d\n", value);
     printf(" < \n");
     printf("%d\n", root->key);
@@ -32,7 +32,7 @@ L0:
 
 L1:
     if (!((value > root->key))) goto L2;
-    printf("   🔄 \n");
+    printf("   --> \n");
     printf("%d\n", value);
     printf(" > \n");
     printf("%d\n", root->key);
@@ -41,7 +41,7 @@ L1:
 
 L2:
     if (!((value == root->key))) goto L3;
-    printf("   ⚠️  Valor \n");
+    printf("   AVISO: Valor \n");
     printf("%d\n", value);
     printf(" já existe - ignorando duplicata\n");
 
@@ -56,13 +56,13 @@ void find_min(TreeNode* node, int level) {
     return;
 
 L4:
-    printf("🔍 Nível \n");
+    printf("BUSCA: Nível \n");
     printf("%d\n", level);
     printf(": examinando nó \n");
     printf("%d\n", node->key);
     if (!((node->left == NULL))) goto L5;
     printf("\n");
-    printf("🎯 CHAVE MÍNIMA ENCONTRADA:\n");
+    printf("ENCONTRADO: CHAVE MÍNIMA ENCONTRADA:\n");
     printf("   Valor: \n");
     printf("%d\n", node->key);
     printf("   Nível: \n");
@@ -82,13 +82,13 @@ void find_max(TreeNode* node, int level) {
     return;
 
 L6:
-    printf("🔍 Nível \n");
+    printf("BUSCA: Nível \n");
     printf("%d\n", level);
     printf(": examinando nó \n");
     printf("%d\n", node->key);
     if (!((node->right == NULL))) goto L7;
     printf("\n");
-    printf("🎯 CHAVE MÁXIMA ENCONTRADA:\n");
+    printf("ENCONTRADO: CHAVE MÁXIMA ENCONTRADA:\n");
     printf("   Valor: \n");
     printf("%d\n", node->key);
     printf("   Nível: \n");
@@ -117,47 +117,289 @@ L9:
 }
 
 
-void print_given_level(TreeNode* root, int level) {
-    if (!((root == NULL))) goto L10;
-    return;
-
+void print_single_node(TreeNode* node, int width) {
+    if (!((node == NULL))) goto L14;
+    int i1 = 1;
 L10:
-    if (!((level == 1))) goto L11;
-    printf("  \n");
-    printf("%d\n", root->key);
+    if (!((i1 <= ((width - 3) / 2)))) goto L11;
+    printf(" \n");
+    i1 = (i1 + 1);
+
+    goto L10;
+L11:
+    printf("---\n");
+    int j1 = 1;
+L12:
+    if (!((j1 <= ((width - 3) / 2)))) goto L13;
+    printf(" \n");
+    j1 = (j1 + 1);
+
+    goto L12;
+L13:
+
+L14:
+    if (!((node != NULL))) goto L21;
+    int value_len = 3;
+    int padding = ((width - value_len) / 2);
+    int i2 = 1;
+L15:
+    if (!((i2 <= padding))) goto L16;
+    printf(" \n");
+    i2 = (i2 + 1);
+
+    goto L15;
+L16:
+    if (!((node->key < 10))) goto L17;
+    printf(" \n");
+
+L17:
+    if (!((node->key < 100))) goto L18;
+    printf(" \n");
+
+L18:
+    printf("%d\n", node->key);
+    int j2 = 1;
+L19:
+    if (!((j2 <= padding))) goto L20;
+    printf(" \n");
+    j2 = (j2 + 1);
+
+    goto L19;
+L20:
+
+L21:
+}
+
+
+void print_connections(int level, int max_height, int nodes_in_level) {
+    int total_width = 80;
+    int node_width = (total_width / nodes_in_level);
+    if (!((level >= max_height))) goto L22;
     return;
 
-L11:
-    print_given_level(root->left, (level - 1));
-    print_given_level(root->right, (level - 1));
+L22:
+    int i = 1;
+L27:
+    if (!((i <= nodes_in_level))) goto L28;
+    int center = (((i - 1) * node_width) + (node_width / 2));
+    int left_child = (center - (node_width / 4));
+    int right_child = (center + (node_width / 4));
+    int spaces_before_left = (left_child - ((i - 1) * node_width));
+    int j = 1;
+L23:
+    if (!((j <= spaces_before_left))) goto L24;
+    printf(" \n");
+    j = (j + 1);
+
+    goto L23;
+L24:
+    printf("/\n");
+    int spaces_between = ((right_child - left_child) - 1);
+    int k = 1;
+L25:
+    if (!((k <= spaces_between))) goto L26;
+    printf(" \n");
+    k = (k + 1);
+
+    goto L25;
+L26:
+    printf("\\\n");
+    i = (i + 1);
+
+    goto L27;
+L28:
+    printf("\n");
+}
+
+
+void print_level_nodes(TreeNode* root, int level, int nodes_printed, int total_nodes) {
+    if (!((level == 1))) goto L29;
+    print_single_node(root, (80 / total_nodes));
+    return;
+
+L29:
+    if (!((root != NULL))) goto L30;
+    print_level_nodes(root->left, (level - 1), nodes_printed, total_nodes);
+    print_level_nodes(root->right, (level - 1), nodes_printed, total_nodes);
+
+L30:
+    if (!((root == NULL))) goto L32;
+    if (!((level > 1))) goto L31;
+    print_level_nodes(NULL, (level - 1), nodes_printed, total_nodes);
+    print_level_nodes(NULL, (level - 1), nodes_printed, total_nodes);
+
+L31:
+
+L32:
+}
+
+
+void print_level_visual(TreeNode* root, int target_level, int spacing) {
+    if (!((target_level == 1))) goto L37;
+    if (!((root != NULL))) goto L33;
+    printf("[\n");
+    printf("%d\n", root->key);
+    printf("]\n");
+
+L33:
+    if (!((root == NULL))) goto L34;
+    printf(" --- \n");
+
+L34:
+    int espacos = 1;
+L35:
+    if (!((espacos <= spacing))) goto L36;
+    printf(" \n");
+    espacos = (espacos + 1);
+
+    goto L35;
+L36:
+    return;
+
+L37:
+    if (!((root != NULL))) goto L38;
+    print_level_visual(root->left, (target_level - 1), spacing);
+    print_level_visual(root->right, (target_level - 1), spacing);
+
+L38:
+    if (!((root == NULL))) goto L39;
+    print_level_visual(NULL, (target_level - 1), spacing);
+    print_level_visual(NULL, (target_level - 1), spacing);
+
+L39:
+}
+
+
+void print_connections_simple(TreeNode* root, int target_level, int spacing) {
+    if (!((target_level == 1))) goto L51;
+    if (!((root != NULL))) goto L48;
+    int tem_filhos = 0;
+    if (!((root->left != NULL))) goto L40;
+    tem_filhos = 1;
+
+L40:
+    if (!((root->right != NULL))) goto L41;
+    tem_filhos = 1;
+
+L41:
+    if (!((tem_filhos == 1))) goto L46;
+    if (!((root->left != NULL))) goto L42;
+    printf("/\n");
+
+L42:
+    if (!((root->left == NULL))) goto L43;
+    printf(" \n");
+
+L43:
+    printf("   \n");
+    if (!((root->right != NULL))) goto L44;
+    printf("\\\n");
+
+L44:
+    if (!((root->right == NULL))) goto L45;
+    printf(" \n");
+
+L45:
+
+L46:
+    if (!((tem_filhos == 0))) goto L47;
+    printf("     \n");
+
+L47:
+
+L48:
+    int espacos2 = 1;
+L49:
+    if (!((espacos2 <= spacing))) goto L50;
+    printf(" \n");
+    espacos2 = (espacos2 + 1);
+
+    goto L49;
+L50:
+    return;
+
+L51:
+    if (!((root != NULL))) goto L53;
+    if (!((target_level > 1))) goto L52;
+    print_connections_simple(root->left, (target_level - 1), spacing);
+    print_connections_simple(root->right, (target_level - 1), spacing);
+
+L52:
+
+L53:
+    if (!((root == NULL))) goto L55;
+    if (!((target_level > 1))) goto L54;
+    print_connections_simple(NULL, (target_level - 1), spacing);
+    print_connections_simple(NULL, (target_level - 1), spacing);
+
+L54:
+
+L55:
 }
 
 
 void print_level_order(TreeNode* root) {
-    if (!((root == NULL))) goto L12;
-    printf("❌ Árvore vazia - nada para imprimir\n");
+    if (!((root == NULL))) goto L56;
+    printf("ERRO: Árvore vazia - nada para imprimir\n");
     return;
 
-L12:
+L56:
     int height = get_height(root);
-    int i = 1;
-    printf("📊 ESTRUTURA DA ÁRVORE (por níveis):\n");
-    printf("   Altura total: \n");
+    printf("VISUALIZAÇÃO HIERÁRQUICA DA BST\n");
+    printf("===============================================\n");
+    printf("   Altura da árvore: \n");
     printf("%d\n", height);
     printf(" níveis\n");
     printf("\n");
-L13:
-    if (!((i <= height))) goto L14;
-    printf("🌳 Nível \n");
-    printf("%d\n", i);
-    printf(":\n");
-    print_given_level(root, i);
+    printf("   Legenda: [valor] = nó existente - --- = nó ausente\n");
+    printf("            /\\ = conexões pai-filho\n");
     printf("\n");
-    i = (i + 1);
+    int level = 1;
+L62:
+    if (!((level <= height))) goto L63;
+    int spaces_before = ((height - level) * 6);
+    int spaces_between = (((level - 1) * 4) + 8);
+    printf("Nível \n");
+    printf("%d\n", level);
+    printf(": \n");
+    int espacamento = 1;
+L57:
+    if (!((espacamento <= spaces_before))) goto L58;
+    printf(" \n");
+    espacamento = (espacamento + 1);
 
-    goto L13;
-L14:
-    printf("✅ Visualização completa da BST finalizada\n");
+    goto L57;
+L58:
+    print_level_visual(root, level, spaces_between);
+    printf("\n");
+    if (!((level < height))) goto L61;
+    printf("        \n");
+    int espacamento2 = 1;
+L59:
+    if (!((espacamento2 <= (spaces_before - 2)))) goto L60;
+    printf(" \n");
+    espacamento2 = (espacamento2 + 1);
+
+    goto L59;
+L60:
+    print_connections_simple(root, level, spaces_between);
+    printf("\n");
+
+L61:
+    level = (level + 1);
+
+    goto L62;
+L63:
+    printf("\n");
+    printf("===============================================\n");
+    printf("OK: Visualização hierárquica da BST finalizada\n");
+    printf("\n");
+    printf("INTERPRETAÇÃO DA ESTRUTURA:\n");
+    printf("   • Cada nível mostra os nós na mesma profundidade\n");
+    printf("   • Nós centralizados mostram a hierarquia visual\n");
+    printf("   • Conexões /\\ indicam relações pai-filho\n");
+    printf("   • Subárvore esquerda fica à esquerda do pai\n");
+    printf("   • Subárvore direita fica à direita do pai\n");
 }
 
 
@@ -176,20 +418,20 @@ int main() {
     printf("🔢 Digite a quantidade de valores a inserir na BST:\n");
     float entrada_qtd = read();
     quantidade = entrada_qtd;
-    if (!((quantidade <= 0))) goto L15;
+    if (!((quantidade <= 0))) goto L64;
     printf("❌ ERRO: Quantidade deve ser positiva!\n");
     printf("Programa encerrado.\n");
     return 1;
 
-L15:
+L64:
     printf("\n");
     printf("📝 Digite os \n");
     printf("%d\n", quantidade);
     printf(" valores inteiros (um por linha):\n");
     printf("\n");
     i = 1;
-L16:
-    if (!((i <= quantidade))) goto L17;
+L65:
+    if (!((i <= quantidade))) goto L66;
     printf("🔢 Valor \n");
     printf("%d\n", i);
     printf(": \n");
@@ -202,9 +444,9 @@ L16:
     printf("\n");
     i = (i + 1);
 
-    goto L16;
-L17:
-    printf("✅ BST construída com sucesso!\n");
+    goto L65;
+L66:
+    printf("OK: BST construída com sucesso!\n");
     printf("\n");
     printf("──────────────────────────────────────────────────────────────────\n");
     printf("                  OPERAÇÃO B: BUSCA DA CHAVE MÍNIMA\n");
@@ -234,7 +476,7 @@ L17:
     printf("                      PROGRAMA FINALIZADO\n");
     printf("==================================================================\n");
     printf("\n");
-    printf("✅ Todas as operações da BST foram executadas com sucesso!\n");
+    printf("OK: Todas as operações da BST foram executadas com sucesso!\n");
     return 0;
 }
 

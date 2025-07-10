@@ -25,7 +25,7 @@ TreeNode insert(TreeNode root, Int value) {
         new_node.key <- value;
         new_node.left <- null;
         new_node.right <- null;
-        print_string "   ✅ Nó ";
+        print_string "   OK: Nó ";
         print value;
         print_string " inserido como nova raiz/folha";
         return new_node;
@@ -33,7 +33,7 @@ TreeNode insert(TreeNode root, Int value) {
     
     // Inserção à esquerda (valor menor)
     if (value < root.key) {
-        print_string "   🔄 ";
+        print_string "   --> ";
         print value;
         print_string " < ";
         print root.key;
@@ -43,7 +43,7 @@ TreeNode insert(TreeNode root, Int value) {
     
     // Inserção à direita (valor maior)
     if (value > root.key) {
-        print_string "   🔄 ";
+        print_string "   --> ";
         print value;
         print_string " > ";
         print root.key;
@@ -53,7 +53,7 @@ TreeNode insert(TreeNode root, Int value) {
     
     // Valor igual - não inserir duplicatas
     if (value == root.key) {
-        print_string "   ⚠️  Valor ";
+        print_string "   AVISO: Valor ";
         print value;
         print_string " já existe - ignorando duplicata";
     }
@@ -73,7 +73,7 @@ Unit find_min(TreeNode node, Int level) {
         return;
     }
     
-    print_string "🔍 Nível ";
+    print_string "BUSCA: Nível ";
     print level;
     print_string ": examinando nó ";
     print node.key;
@@ -81,7 +81,7 @@ Unit find_min(TreeNode node, Int level) {
     // Caso base: não há mais nós à esquerda
     if (node.left == null) {
         print_string "";
-        print_string "🎯 CHAVE MÍNIMA ENCONTRADA:";
+        print_string "ENCONTRADO: CHAVE MÍNIMA ENCONTRADA:";
         print_string "   Valor: ";
         print node.key;
         print_string "   Nível: ";
@@ -102,7 +102,7 @@ Unit find_max(TreeNode node, Int level) {
         return;
     }
     
-    print_string "🔍 Nível ";
+    print_string "BUSCA: Nível ";
     print level;
     print_string ": examinando nó ";
     print node.key;
@@ -110,7 +110,7 @@ Unit find_max(TreeNode node, Int level) {
     // Caso base: não há mais nós à direita
     if (node.right == null) {
         print_string "";
-        print_string "🎯 CHAVE MÁXIMA ENCONTRADA:";
+        print_string "ENCONTRADO: CHAVE MÁXIMA ENCONTRADA:";
         print_string "   Valor: ";
         print node.key;
         print_string "   Nível: ";
@@ -144,50 +144,280 @@ Int get_height(TreeNode node) {
     return right_height + 1;
 }
 
-// Imprime todos os nós de um nível específico
-// Usado pela função de impressão por níveis
-Unit print_given_level(TreeNode root, Int level) {
-    if (root == null) {
-        return;
+// Imprime um nó individual na visualização da árvore
+// Inclui representação de nós nulos para manter estrutura visual
+Unit print_single_node(TreeNode node, Int width) {
+    if (node == null) {
+        // Representa nó ausente com '---'
+        Int i1 <- 1;
+        while (i1 <= (width - 3) / 2) {
+            print_string " ";
+            i1 <- i1 + 1;
+        }
+        print_string "---";
+        Int j1 <- 1;
+        while (j1 <= (width - 3) / 2) {
+            print_string " ";
+            j1 <- j1 + 1;
+        }
     }
     
-    if (level == 1) {
-        print_string "  ";
-        print root.key;
-        return;
+    if (node != null) {
+        // Centraliza o valor do nó dentro da largura disponível
+        Int value_len <- 3; // Assume números de até 3 dígitos
+        Int padding <- (width - value_len) / 2;
+        
+        Int i2 <- 1;
+        while (i2 <= padding) {
+            print_string " ";
+            i2 <- i2 + 1;
+        }
+        
+        if (node.key < 10) {
+            print_string " ";
+        }
+        if (node.key < 100) {
+            print_string " ";
+        }
+        print node.key;
+        
+        Int j2 <- 1;
+        while (j2 <= padding) {
+            print_string " ";
+            j2 <- j2 + 1;
+        }
     }
-    
-    print_given_level(root.left, level - 1);
-    print_given_level(root.right, level - 1);
 }
 
-// Impressão da árvore por níveis (level-order traversal)
-// Exibe a estrutura hierárquica da BST
+// Imprime uma linha de conexões visuais entre níveis
+Unit print_connections(Int level, Int max_height, Int nodes_in_level) {
+    Int total_width <- 80; // Largura total da visualização
+    Int node_width <- total_width / nodes_in_level;
+    
+    if (level >= max_height) {
+        return; // Não há conexões após o último nível
+    }
+    
+    // Imprime linha com '/' e '\' para mostrar conexões pai-filho
+    Int i <- 1;
+    while (i <= nodes_in_level) {
+        Int center <- (i - 1) * node_width + node_width / 2;
+        Int left_child <- center - node_width / 4;
+        Int right_child <- center + node_width / 4;
+        
+        // Imprime espaços até a posição da conexão esquerda
+        Int spaces_before_left <- left_child - ((i - 1) * node_width);
+        Int j <- 1;
+        while (j <= spaces_before_left) {
+            print_string " ";
+            j <- j + 1;
+        }
+        
+        print_string "/";
+        
+        // Imprime espaços entre conexões
+        Int spaces_between <- right_child - left_child - 1;
+        Int k <- 1;
+        while (k <= spaces_between) {
+            print_string " ";
+            k <- k + 1;
+        }
+        
+        print_string "\\";
+        
+        i <- i + 1;
+    }
+    print_string "";
+}
+
+// Coleta todos os nós de um nível específico em uma lista conceitual
+// Para impressão organizada da estrutura visual
+Unit print_level_nodes(TreeNode root, Int level, Int nodes_printed, Int total_nodes) {
+    if (level == 1) {
+        print_single_node(root, 80 / total_nodes);
+        return;
+    }
+    
+    if (root != null) {
+        print_level_nodes(root.left, level - 1, nodes_printed, total_nodes);
+        print_level_nodes(root.right, level - 1, nodes_printed, total_nodes);
+    }
+    
+    if (root == null) {
+        // Para nós nulos, ainda precisamos imprimir espaços para filhos
+        if (level > 1) {
+            print_level_nodes(null, level - 1, nodes_printed, total_nodes);
+            print_level_nodes(null, level - 1, nodes_printed, total_nodes);
+        }
+    }
+}
+
+// Função auxiliar para impressão visual simplificada de um nível
+Unit print_level_visual(TreeNode root, Int target_level, Int spacing) {
+    if (target_level == 1) {
+        if (root != null) {
+            print_string "[";
+            print root.key;
+            print_string "]";
+        }
+        
+        if (root == null) {
+            print_string " --- ";
+        }
+        
+        // Adiciona espaçamento entre nós do mesmo nível
+        Int espacos <- 1;
+        while (espacos <= spacing) {
+            print_string " ";
+            espacos <- espacos + 1;
+        }
+        return;
+    }
+    
+    if (root != null) {
+        print_level_visual(root.left, target_level - 1, spacing);
+        print_level_visual(root.right, target_level - 1, spacing);
+    }
+    
+    if (root == null) {
+        // Para nós nulos, ainda processamos os "filhos" conceituais
+        print_level_visual(null, target_level - 1, spacing);
+        print_level_visual(null, target_level - 1, spacing);
+    }
+}
+
+// Função auxiliar para imprimir conexões simples entre níveis
+Unit print_connections_simple(TreeNode root, Int target_level, Int spacing) {
+    if (target_level == 1) {
+        if (root != null) {
+            // Imprime conexões do nó atual para seus filhos
+            Int tem_filhos <- 0;
+            if (root.left != null) {
+                tem_filhos <- 1;
+            }
+            if (root.right != null) {
+                tem_filhos <- 1;
+            }
+            
+            if (tem_filhos == 1) {
+                if (root.left != null) {
+                    print_string "/";
+                }
+                
+                if (root.left == null) {
+                    print_string " ";
+                }
+                
+                print_string "   ";
+                
+                if (root.right != null) {
+                    print_string "\\";
+                }
+                
+                if (root.right == null) {
+                    print_string " ";
+                }
+            }
+            
+            if (tem_filhos == 0) {
+                print_string "     "; // Espaço para nó sem filhos
+            }
+        }
+        
+        // Espaçamento entre grupos de conexões
+        Int espacos2 <- 1;
+        while (espacos2 <= spacing) {
+            print_string " ";
+            espacos2 <- espacos2 + 1;
+        }
+        return;
+    }
+    
+    if (root != null) {
+        if (target_level > 1) {
+            print_connections_simple(root.left, target_level - 1, spacing);
+            print_connections_simple(root.right, target_level - 1, spacing);
+        }
+    }
+    
+    if (root == null) {
+        if (target_level > 1) {
+            // Para nós nulos, ainda processamos os "filhos" conceituais
+            print_connections_simple(null, target_level - 1, spacing);
+            print_connections_simple(null, target_level - 1, spacing);
+        }
+    }
+}
+
+// Impressão visual avançada da árvore (representação hierárquica melhorada)
+// Cria uma visualização mais intuitiva da estrutura da BST no console
+// Mostra conexões entre níveis e alinhamento hierárquico claro
 Unit print_level_order(TreeNode root) {
     if (root == null) {
-        print_string "❌ Árvore vazia - nada para imprimir";
+        print_string "ERRO: Árvore vazia - nada para imprimir";
         return;
     }
     
     Int height <- get_height(root);
-    Int i <- 1;
     
-    print_string "📊 ESTRUTURA DA ÁRVORE (por níveis):";
-    print_string "   Altura total: ";
+    print_string "VISUALIZAÇÃO HIERÁRQUICA DA BST";
+    print_string "===============================================";
+    print_string "   Altura da árvore: ";
     print height;
     print_string " níveis";
     print_string "";
+    print_string "   Legenda: [valor] = nó existente - --- = nó ausente";
+    print_string "            /\\ = conexões pai-filho";
+    print_string "";
     
-    while (i <= height) {
-        print_string "🌳 Nível ";
-        print i;
-        print_string ":";
-        print_given_level(root, i);
+    // Versão simplificada: impressão nível por nível com espaçamento visual
+    Int level <- 1;
+    while (level <= height) {
+        // Calcula espaçamento para centralizar cada nível
+        Int spaces_before <- (height - level) * 6;
+        Int spaces_between <- (level - 1) * 4 + 8;
+        
+        // Linha indicadora do nível
+        print_string "Nível ";
+        print level;
+        print_string ": ";
+        
+        // Espaçamento inicial para centralizar
+        Int espacamento <- 1;
+        while (espacamento <= spaces_before) {
+            print_string " ";
+            espacamento <- espacamento + 1;
+        }
+        
+        // Imprime os nós deste nível
+        print_level_visual(root, level, spaces_between);
         print_string "";
-        i <- i + 1;
+        
+        // Imprime linha de conexões (exceto para o último nível)
+        if (level < height) {
+            print_string "        "; // Alinha com "Nível X: "
+            Int espacamento2 <- 1;
+            while (espacamento2 <= spaces_before - 2) {
+                print_string " ";
+                espacamento2 <- espacamento2 + 1;
+            }
+            print_connections_simple(root, level, spaces_between);
+            print_string "";
+        }
+        
+        level <- level + 1;
     }
     
-    print_string "✅ Visualização completa da BST finalizada";
+    print_string "";
+    print_string "===============================================";
+    print_string "OK: Visualização hierárquica da BST finalizada";
+    print_string "";
+    print_string "INTERPRETAÇÃO DA ESTRUTURA:";
+    print_string "   • Cada nível mostra os nós na mesma profundidade";
+    print_string "   • Nós centralizados mostram a hierarquia visual";
+    print_string "   • Conexões /\\ indicam relações pai-filho";
+    print_string "   • Subárvore esquerda fica à esquerda do pai";
+    print_string "   • Subárvore direita fica à direita do pai";
 }
 
 // =================================================================
@@ -250,7 +480,7 @@ Int main() {
         i <- i + 1;
     }
     
-    print_string "✅ BST construída com sucesso!";
+    print_string "OK: BST construída com sucesso!";
     print_string "";
     
     // =============================================================
@@ -303,7 +533,7 @@ Int main() {
     print_string "                      PROGRAMA FINALIZADO";
     print_string "==================================================================";
     print_string "";
-    print_string "✅ Todas as operações da BST foram executadas com sucesso!";
+    print_string "OK: Todas as operações da BST foram executadas com sucesso!";
 
     
     return 0;
