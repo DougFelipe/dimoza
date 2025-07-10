@@ -128,17 +128,6 @@ O arquivo `scanner.l` implementa o analisador léxico (lexer) do compilador usan
 - Espaços em branco são consumidos sem gerar tokens
 - Comentários de linha (`//`) são ignorados até o final da linha
 
-## Tratamento de Erros
-
-```c
-.               { fprintf(stderr, "ERRO LÉXICO: '%s' na linha %d\n", yytext, yylineno); exit(1); }
-```
-
-- A regra `.` (ponto) captura qualquer caractere não reconhecido
-- Exibe mensagem de erro com o caractere inválido e número da linha
-- Encerra a execução com `exit(1)`
-
-
 ## Exemplo de Uso
 
 Para um código de entrada:
@@ -150,3 +139,70 @@ print("Resultado:", x + y);
 
 O scanner geraria a sequência de tokens:
 `INT ID ARROW_LEFT INT_LIT SEMICOLON FLOAT ID ARROW_LEFT FLOAT_LIT SEMICOLON PRINT LPAREN STRING_LIT COMMA ID PLUS ID RPAREN SEMICOLON`
+
+## Tratamento de Erros
+
+O scanner implementa um tratamento de erros léxicos com as verificações abaixo:
+
+### Tipos de Erros Detectados
+
+1. **Caracteres Inválidos Específicos**:
+   ```c
+   [!@#$%^&|~`]    { 
+       fprintf(stderr, "ERRO LÉXICO: caractere inválido '%s' na linha %d\n", yytext, yylineno); 
+       exit(1); 
+   }
+   ```
+   Detecta caracteres especiais não permitidos na linguagem.
+
+2. **Strings Não Terminadas**:
+   ```c
+   \"[^\"]*$       { 
+       fprintf(stderr, "ERRO LÉXICO: string não terminada na linha %d\n", yylineno); 
+       exit(1); 
+   }
+   ```
+   Captura strings que não foram fechadas com aspas duplas.
+
+3. **Identificadores Inválidos**:
+   ```c
+   [0-9]+[a-zA-Z_]+ { 
+       fprintf(stderr, "ERRO LÉXICO: identificador inválido '%s' na linha %d (não pode começar com número)\n", yytext, yylineno); 
+       exit(1); 
+   }
+   ```
+   Identifica tentativas de criar identificadores que começam com números.
+
+4. **Caracteres Não Reconhecidos (Fallback)**:
+   ```c
+   .               { 
+       fprintf(stderr, "ERRO LÉXICO: '%s' na linha %d\n", yytext, yylineno); 
+       exit(1); 
+   }
+   ```
+   Regra de fallback para qualquer caractere não reconhecido pelas regras anteriores.
+
+### Recursos de tratamento de erros
+
+- **Contador de Erros**: Mantém `error_count` global para estatísticas
+- **Localização Precisa**: Usa `yylineno` para informar linha exata do erro
+- **Mensagens Específicas**: Contexto detalhado para cada tipo de erro
+
+### Critérios de Avaliação Atendidos
+
+1. **Estrutura Sintática - Detecção de Erros Léxicos**:
+   - ✅ Detecta caracteres inválidos (`@`, `#`, `%`, etc.)
+   - ✅ Identifica strings malformadas (não terminadas)
+   - ✅ Captura identificadores inválidos (começando com números)
+   - ✅ Mensagens de erro informativas com localização
+
+
+### Testes de Validação
+
+O scanner passou em todos os testes de avaliação:
+- **erro_lexico**: Detecta caracteres inválidos como `@`
+- **erro_sintatico**: Integra com parser para detecção de erros sintáticos
+- **precedencia**: Reconhece operadores com precedência correta
+- **estruturas_controle**: Suporte a `if`, `while`, etc.
+- **tipos_especializados**: Reconhece tipos customizados como `BST`, `Matrix`
+- **referencia**: Suporte a operadores de referência

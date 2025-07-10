@@ -55,6 +55,8 @@ char* deref_if_needed(struct record* rec) {
 %token <float_val> FLOAT_LIT
 %token <str_val> STRING_LIT
 
+%define parse.error verbose  // Habilita mensagens de erro mais detalhadas
+
 // Tipos dos não-terminais
 %type <rec> program decl_list func_decl param_list_opt param_list param
 %type <rec> stmt_list stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt print_inline_stmt print_string_stmt return_stmt if_stmt while_stmt
@@ -232,6 +234,14 @@ var_decl_stmt:
         insertSymbol($2, $1->opt1);
         freeRecord($1); free($2); freeRecord($4);
     }
+  | type ID ARROW_LEFT error SEMICOLON {
+        fprintf(stderr, "ERRO DE SINTAXE: expressão inválida ou ausente após '<-' na linha %d\n", yylineno);
+        YYABORT;
+    }
+  | type ID ARROW_LEFT error {
+        fprintf(stderr, "ERRO DE SINTAXE: ';' esperado após expressão na linha %d\n", yylineno);
+        YYABORT;
+    }
 ;
 
 assignment_stmt:
@@ -245,6 +255,14 @@ assignment_stmt:
         }
         $$ = createRecord(s, ""); free(s); free(val);
         freeRecord($1); freeRecord($3);
+    }
+  | lvalue ARROW_LEFT error SEMICOLON {
+        fprintf(stderr, "ERRO DE SINTAXE: expressão inválida ou ausente após '<-' na linha %d\n", yylineno);
+        YYABORT;
+    }
+  | lvalue ARROW_LEFT error {
+        fprintf(stderr, "ERRO DE SINTAXE: ';' esperado após expressão na linha %d\n", yylineno);
+        YYABORT;
     }
 ;
 
@@ -444,7 +462,18 @@ arg_list:
 // --- CÓDIGO AUXILIAR ---
 
 void yyerror(const char *s) {
-    fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
+    if (strcmp(s, "syntax error") == 0) {
+        if (strcmp(yytext, "<-") == 0) {
+            fprintf(stderr, "ERRO DE SINTAXE: expressão esperada após '<-' na linha %d\n", yylineno);
+        } else if (strcmp(yytext, "print") == 0) {
+            fprintf(stderr, "ERRO DE SINTAXE: expressão incompleta antes de 'print' na linha %d\n", yylineno);
+        } else {
+            fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
+        }
+    } else {
+        fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
+    }
+    exit(1); // Força saída com erro para garantir detecção nos testes
 }
 
 char* cat(const char *s1, const char *s2, const char *s3, const char *s4, const char *s5) {
