@@ -566,13 +566,22 @@ Unit main() {
         print_string "";
         print_string "✅ Todas as operações foram executadas com sucesso!";
         print_string "";
-        print_string "      OPERAÇÕES REALIZADAS:";
+        print_string "📊 RESUMO DAS OPERAÇÕES REALIZADAS:";
+        print_string "   • Entrada interativa de matrizes";
         print_string "   • Validação de dimensões";
         print_string "   • Verificação de compatibilidade para operações";
         print_string "   • Cálculo de soma de matrizes";
         print_string "   • Cálculo de multiplicação de matrizes";
-
- 
+        print_string "   • Exibição formatada de resultados";
+        print_string "";
+        print_string "🎓 CONCEITOS DEMONSTRADOS:";
+        print_string "   • Álgebra linear computacional";
+        print_string "   • Estruturas de controle condicionais";
+        print_string "   • Manipulação de dados estruturados";
+        print_string "   • Validação robusta de entrada";
+        print_string "   • Modularização de código";
+        print_string "";
+        print_string "Obrigado por usar o programa de Operações com Matrizes!";
         
     }
     if (dimensoes_validas == 0) {
