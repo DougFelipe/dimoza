@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int error_count = 0;  // Contador de erros léxicos
+int error_count = 0;
 %}
 
 %option noyywrap
@@ -62,16 +62,16 @@ int error_count = 0;  // Contador de erros léxicos
 [ \t\r\n]+      { /* Ignora espaços em branco */ }
 "//".* { /* Ignora comentários de linha */ }
 
-[!@#$%^&|~`]    { 
+[!@#$%^&|~`]    {
     fprintf(stderr, "ERRO LÉXICO: caractere inválido '%s' na linha %d\n", yytext, yylineno); 
     error_count++;
-    exit(1); 
+    exit(1);
 }
 
-.               { 
+.               {
     fprintf(stderr, "ERRO LÉXICO: '%s' na linha %d\n", yytext, yylineno); 
     error_count++;
-    exit(1); 
+    exit(1);
 }
 
 %%
