@@ -1,57 +1,105 @@
 Unit main() {
-    // 1. Declara e inicializa os contadores para cada intervalo.
-    Int c_0_25   <- 0;
-    Int c_26_50  <- 0;
-    Int c_51_75  <- 0;
-    Int c_76_100 <- 0;
+    // === PROGRAMA DE CLASSIFICAÇÃO DE NÚMEROS POR INTERVALOS ===
     
-    // 2. Declara variáveis de trabalho.
-    Float numero_lido <- 0.0;
-    Int continuar <- 1;       // Flag para controlar o loop.
-    Int condicao_valida <- 0; // Flag para checar as condições do intervalo.
+    // 1. Apresentação do programa ao usuário
+    print_string "=== CLASSIFICADOR DE NÚMEROS POR INTERVALOS ===";
+    print_string "Este programa classifica números nos seguintes intervalos:";
+    print_string "[0-25], [26-50], [51-75], [76-100]";
+    print_string "";
+    print_string "Digite números positivos (ENTER após cada um)";
+    print_string "Para finalizar, digite qualquer número negativo";
+    print_string "";
 
-    // 3. Inicia o loop para ler os números.
-    while (continuar == 1) {
-        // A cada iteração, lê um novo número.
-        numero_lido <- read();
+    // 2. Inicialização dos contadores para cada intervalo
+    Int contador_0_25   <- 0;
+    Int contador_26_50  <- 0;
+    Int contador_51_75  <- 0;
+    Int contador_76_100 <- 0;
+    
+    // 3. Variáveis de controle do programa
+    Float numero_atual <- 0.0;
+    Int programa_ativo <- 1;
+    Int numero_entrada <- 0;  // Contador de números inseridos
 
-        // Verifica se o número lido é o sinal de parada (negativo).
-        if (numero_lido < 0.0) {
-            // Se for, muda a flag para sair do loop na próxima iteração.
-            continuar <- 0;
+    // 4. Loop principal de leitura e classificação
+    while (programa_ativo == 1) {
+        // Solicita entrada do usuário
+        print_string "Digite um número (negativo para sair):";
+        numero_atual <- read();
+
+        // Verifica condição de parada
+        if (numero_atual < 0.0) {
+            programa_ativo <- 0;
+            print_string "Número negativo detectado. Encerrando programa...";
         }
 
-        // A lógica de contagem só é executada se não for para parar.
-        if (continuar == 1) {
-            // --- Lógica para o intervalo [0, 25] ---
-            condicao_valida <- 1; // Começa assumindo que a condição é verdadeira.
-            if (numero_lido > 25.0) { condicao_valida <- 0; }
-            // A checagem de numero_lido < 0.0 é desnecessária aqui.
-            if (condicao_valida == 1) { c_0_25 <- c_0_25 + 1; }
-
-            // --- Lógica para o intervalo [26, 50] ---
-            condicao_valida <- 1;
-            if (numero_lido < 26.0) { condicao_valida <- 0; }
-            if (numero_lido > 50.0) { condicao_valida <- 0; }
-            if (condicao_valida == 1) { c_26_50 <- c_26_50 + 1; }
-
-            // --- Lógica para o intervalo [51, 75] ---
-            condicao_valida <- 1;
-            if (numero_lido < 51.0) { condicao_valida <- 0; }
-            if (numero_lido > 75.0) { condicao_valida <- 0; }
-            if (condicao_valida == 1) { c_51_75 <- c_51_75 + 1; }
-
-            // --- Lógica para o intervalo [76, 100] ---
-            condicao_valida <- 1;
-            if (numero_lido < 76.0) { condicao_valida <- 0; }
-            if (numero_lido > 100.0) { condicao_valida <- 0; }
-            if (condicao_valida == 1) { c_76_100 <- c_76_100 + 1; }
+        // Processa apenas números válidos (não negativos)
+        if (programa_ativo == 1) {
+            numero_entrada <- numero_entrada + 1;
+            
+            // === CLASSIFICAÇÃO POR INTERVALOS ===
+            
+            // Intervalo [0, 25]
+            if (numero_atual >= 0.0) {
+                if (numero_atual <= 25.0) {
+                    contador_0_25 <- contador_0_25 + 1;
+                    print_string "-> Classificado no intervalo [0-25]";
+                }
+            }
+            
+            // Intervalo [26, 50]  
+            if (numero_atual >= 26.0) {
+                if (numero_atual <= 50.0) {
+                    contador_26_50 <- contador_26_50 + 1;
+                    print_string "-> Classificado no intervalo [26-50]";
+                }
+            }
+            
+            // Intervalo [51, 75]
+            if (numero_atual >= 51.0) {
+                if (numero_atual <= 75.0) {
+                    contador_51_75 <- contador_51_75 + 1;
+                    print_string "-> Classificado no intervalo [51-75]";
+                }
+            }
+            
+            // Intervalo [76, 100]
+            if (numero_atual >= 76.0) {
+                if (numero_atual <= 100.0) {
+                    contador_76_100 <- contador_76_100 + 1;
+                    print_string "-> Classificado no intervalo [76-100]";
+                }
+            }
+            
+            // Número fora dos intervalos válidos
+            if (numero_atual > 100.0) {
+                print_string "-> AVISO: Número fora dos intervalos monitorados (>100)";
+            }
+            
+            print_string "";  // Linha em branco para melhor legibilidade
         }
     }
 
-    // 4. Imprime os resultados finais.
-    print c_0_25;
-    print c_26_50;
-    print c_51_75;
-    print c_76_100;
+    // 5. Apresentação dos resultados finais
+    print_string "";
+    print_string "========== RELATÓRIO FINAL ==========";
+    print_string "Total de números processados:";
+    print numero_entrada;
+    print_string "";
+    print_string "Distribuição por intervalos:";
+    
+    print_string "Intervalo [0-25]:";
+    print contador_0_25;
+    
+    print_string "Intervalo [26-50]:";
+    print contador_26_50;
+    
+    print_string "Intervalo [51-75]:";
+    print contador_51_75;
+    
+    print_string "Intervalo [76-100]:";
+    print contador_76_100;
+    
+    print_string "";
+    print_string "Programa finalizado com sucesso!";
 }
