@@ -84,7 +84,6 @@ echo "💡 EXEMPLO:"
 echo "  x = 3.0, y = 2.5, c = 10"
 echo "  resultado = 3.0² - 2.5 + 10 = 9.0 - 2.5 + 10 = 16.5"
 echo ""
-echo "⚡ INICIANDO PROGRAMA INTERATIVO..."
 echo ""
 
 # Executar apenas em modo interativo
@@ -121,7 +120,6 @@ echo ""
     echo "- Operações de multiplicação, subtração e adição"
     echo "- Impressão do resultado final"
     echo ""
-    echo "O resultado deve ser 16.5 (ou 16.500000 em formato float)"
 else
     echo "ERRO na compilação do código C!"
     echo ""

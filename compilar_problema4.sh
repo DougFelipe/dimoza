@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # Script para compilar e executar o Problema 4 (Números Racionais)
-# Compilador Dimoza - Versão Educacional e Interativa
-# Modo: Apenas execução interativa
 
 echo "===================================================================="
 echo "         COMPILADOR DIMOZA - PROBLEMA 4: NÚMEROS RACIONAIS"
@@ -118,10 +116,4 @@ echo "✅ Problema 4 executado com sucesso!"
 echo "📁 Arquivos gerados:"
 echo "   • problema4.c (código C intermediário)"
 echo "   • problema4.exe (executável final)"
-echo ""
-echo "📊 RESUMO DA IMPLEMENTAÇÃO:"
-echo "   ✓ A) Criação de números racionais a partir de inteiros"
-echo "   ✓ B) Comparação de igualdade usando produto cruzado"
-echo "   ✓ C) Operações completas: soma, negação, subtração, multiplicação, inverso e divisão"
-echo "   ✓ D) Normalização automática (denominador sempre positivo)"
 echo ""

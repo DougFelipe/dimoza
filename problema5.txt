@@ -1,61 +1,204 @@
-// problema5.txt
-// Lógica recursiva simplificada para o algoritmo de Euclides.
+// PROBLEMA 5: MÁXIMO DIVISOR COMUM (MDC) RECURSIVO 
 
-// Protótipo da função mdc para permitir a chamada recursiva.
+
+// =================================================================
+// MÓDULO A: FUNÇÕES AUXILIARES
+// =================================================================
+
+// Protótipo da função mdc para permitir chamadas recursivas
 Unit mdc(Int n, Int m, ref Int r);
 
-// Função auxiliar para calcular o resto da divisão inteira (n % m).
+// Função auxiliar para calcular o resto da divisão inteira (n % m)
+// Implementa a operação módulo de forma segura
 Int resto_divisao(Int n, Int m) {
-    // Evita divisão por zero no C gerado.
+    // Proteção contra divisão por zero
     if (m == 0) {
-        return n; // Se m=0, o resto é n.
+        return n;
     }
+    // Calcula resto usando: resto = n - (m × quociente)
     return n - (m * (n / m));
 }
 
-// Subprograma que calcula o MDC de forma recursiva.
+// =================================================================
+// MÓDULO B: ALGORITMO DE EUCLIDES RECURSIVO
+// =================================================================
+
+// Subprograma que calcula o MDC de forma recursiva usando o algoritmo de Euclides
+// Parâmetros: n, m (valores inteiros positivos) - por valor
+//            r (resultado do MDC) - por referência
 Unit mdc(Int n, Int m, ref Int r) {
-    // Caso base: se m é 0, o mdc é n.
+    print_string "🔄 Chamada recursiva: mdc(";
+    print n;
+    print_string ", ";
+    print m;
+    print_string ")";
+    
+    // Caso base: se m é 0, o MDC é n
     if (m == 0) {
+        print_string "✅ Caso base alcançado: MDC = ";
+        print n;
         r <- n;
         return;
     }
 
-    // Passo recursivo: chama mdc com (m, n % m).
-    // O resultado será propagado de volta pela referência 'r'.
-    mdc(m, resto_divisao(n, m), r);
+    // Passo recursivo: aplica o algoritmo de Euclides
+    // mdc(n, m) = mdc(m, n % m)
+    Int resto <- resto_divisao(n, m);
+    print_string "   → Próxima chamada: mdc(";
+    print m;
+    print_string ", ";
+    print resto;
+    print_string ") [resto de ";
+    print n;
+    print_string " ÷ ";
+    print m;
+    print_string "]";
+    
+    // Chamada recursiva com os novos valores
+    mdc(m, resto, r);
 }
 
-// Programa Principal
+// =================================================================
+// PROGRAMA PRINCIPAL 
+// =================================================================
+
 Unit main() {
+
+    
+    print_string "==================================================================";
+    print_string "         MÁXIMO DIVISOR COMUM (MDC) - LINGUAGEM DIMOZA";
+    print_string "==================================================================";
+
+    
+    // =============================================================
+    // PRIMEIRO CASO DE TESTE - ENTRADA INTERATIVA
+    // =============================================================
+    
+    print_string "──────────────────────────────────────────────────────────────────";
+    print_string "                    PRIMEIRO CASO DE TESTE";
+    print_string "──────────────────────────────────────────────────────────────────";
+    print_string "";
+    
     Int num1;
     Int num2;
     Int resultado_mdc;
-
-    // Primeiro caso de teste
-    num1 <- 54;
-    num2 <- 24;
-
-    print_string "===================================";
-    print_string "Calculando o MDC de 54 e 24 (Recursivo)";
-    print_string "===================================";
-
-    mdc(num1, num2, &resultado_mdc);
-
-    print_string "O resultado e:";
-    print(resultado_mdc); // Deve imprimir 6
-
-    // Segundo caso de teste
-    num1 <- 105;
-    num2 <- 30;
+    
+    print_string "📝 Digite os dois números naturais positivos:";
+    print_string "";
+    print_string "🔢 Digite o primeiro número (n):";
+    Float entrada1 <- read();
+    num1 <- entrada1;
+    
+    print_string "🔢 Digite o segundo número (m):";
+    Float entrada2 <- read();
+    num2 <- entrada2;
+    
+    // =============================================================
+    // VALIDAÇÃO DOS DADOS INSERIDOS
+    // =============================================================
     
     print_string "";
-    print_string "===================================";
-    print_string "Calculando o MDC de 105 e 30 (Recursivo)";
-    print_string "===================================";
-
-    mdc(num1, num2, &resultado_mdc);
+    print_string "🔍 VALIDANDO ENTRADA...";
+    Int dados_validos <- 1;
     
-    print_string "O resultado e:";
-    print(resultado_mdc); // Deve imprimir 15
+    if (num1 <= 0) {
+        print_string "❌ ERRO: O primeiro número deve ser positivo!";
+        dados_validos <- 0;
+    }
+    if (num2 <= 0) {
+        print_string "❌ ERRO: O segundo número deve ser positivo!";
+        dados_validos <- 0;
+    }
+    
+    if (dados_validos == 1) {
+        print_string "✅ Entrada validada com sucesso!";
+        print_string "";
+        print_string "📋 DADOS CONFIRMADOS:";
+        print_string "   Primeiro número:  ";
+        print num1;
+        print_string "   Segundo número:   ";
+        print num2;
+        print_string "";
+        
+        // =============================================================
+        // CÁLCULO DO MDC COM EXPLICAÇÃO PASSO A PASSO
+        // =============================================================
+        
+        print_string "──────────────────────────────────────────────────────────────────";
+        print_string "                    CÁLCULO DO MDC RECURSIVO";
+        print_string "──────────────────────────────────────────────────────────────────";
+        print_string "";
+        print_string "🧮 Calculando MDC(";
+        print num1;
+        print_string ", ";
+        print num2;
+        print_string ") usando o algoritmo de Euclides...";
+        print_string "";
+        print_string "🔍 RASTREAMENTO DAS CHAMADAS RECURSIVAS:";
+        
+        mdc(num1, num2, &resultado_mdc);
+        
+        print_string "";
+        print_string "🎯 RESULTADO FINAL: O MDC de ";
+        print num1;
+        print_string " e ";
+        print num2;
+        print_string " é ";
+        print resultado_mdc;
+        print_string "";
+        
+        // =============================================================
+        // SEGUNDO CASO DE TESTE - NÚMEROS PRÉ-DEFINIDOS
+        // =============================================================
+        
+        print_string "──────────────────────────────────────────────────────────────────";
+        print_string "                    SEGUNDO CASO DE TESTE";
+        print_string "──────────────────────────────────────────────────────────────────";
+        print_string "";
+        print_string "🧪 Teste adicional com valores pré-definidos: MDC(105, 30)";
+        print_string "";
+        
+        num1 <- 105;
+        num2 <- 30;
+        
+        print_string "🔍 RASTREAMENTO DAS CHAMADAS RECURSIVAS:";
+        
+        mdc(num1, num2, &resultado_mdc);
+        
+        print_string "";
+        print_string "🎯 RESULTADO: O MDC de 105 e 30 é ";
+        print resultado_mdc;
+        print_string " (valor esperado: 15)";
+        print_string "";
+        
+        // =============================================================
+        // FINALIZAÇÃO DO PROGRAMA
+        // =============================================================
+        
+        print_string "==================================================================";
+        print_string "                      PROGRAMA FINALIZADO";
+        print_string "==================================================================";
+        print_string "";
+        print_string "✅ Todos os cálculos foram executados com sucesso!";
+        print_string "";
+
+
+        
+    }
+    if (dados_validos == 0) {
+        print_string "";
+        print_string "==================================================================";
+        print_string "                    PROGRAMA ENCERRADO COM ERRO";
+        print_string "==================================================================";
+        print_string "";
+        print_string "❌ O programa foi encerrado devido a entrada inválida.";
+        print_string "";
+        print_string "📋 REQUISITOS PARA EXECUÇÃO:";
+        print_string "   • Os números devem ser naturais estritamente positivos";
+        print_string "   • Valores devem ser maiores que zero";
+        print_string "   • Entrada deve conter apenas números inteiros";
+        print_string "";
+        print_string "💡 DICA: Execute o programa novamente e insira";
+        print_string "         números naturais positivos (> 0).";
+    }
 }

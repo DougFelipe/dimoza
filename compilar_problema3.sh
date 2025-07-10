@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Script para compilar e executar o Problema 3 (Operações com Matrizes)
-# Compilador Dimoza - Versão Educacional e Interativa
-# Modo: Apenas execução interativa
+
 
 echo "===================================================================="
 echo "         COMPILADOR DIMOZA - PROBLEMA 3: OPERAÇÕES COM MATRIZES"
