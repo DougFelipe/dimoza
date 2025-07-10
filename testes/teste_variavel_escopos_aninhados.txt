@@ -1,0 +1,13 @@
+// Teste 2D: Variáveis duplicadas em escopos distintos e aninhados
+Unit main() {
+    Int x <- 10;  // x no escopo externo
+    print x;      // Deve imprimir 10
+    
+    if (x > 5) {
+        Int x <- 20;  // x no escopo interno (OK, escopo aninhado)
+        print x;      // Deve imprimir 20 (shadowing)
+    }
+    
+    print x;      // Deve imprimir 10 (escopo externo novamente)
+    return;
+}

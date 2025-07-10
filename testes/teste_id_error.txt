@@ -1,0 +1,5 @@
+// Teste de identificador inválido (começa com número)
+Unit main() {
+    Int 123invalid <- 42;
+    return;
+}

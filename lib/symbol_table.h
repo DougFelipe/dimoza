@@ -9,4 +9,12 @@ int symbolExists(const char *name);
 int symbolAlreadyDeclared(const char *name);
 void freeSymbolTable(void);
 
+// Funções para gerenciamento de escopo
+void pushScope(void);
+void popScope(void);
+int symbolExistsInCurrentScope(const char *name);
+void checkUndeclaredVariable(const char *name);
+void checkDuplicateVariable(const char *name);
+int getCurrentScope(void);
+
 #endif

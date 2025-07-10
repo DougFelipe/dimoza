@@ -55,6 +55,8 @@ char* deref_if_needed(struct record* rec) {
 %token <float_val> FLOAT_LIT
 %token <str_val> STRING_LIT
 
+%define parse.error verbose  // Habilita mensagens de erro mais detalhadas
+
 // Tipos dos não-terminais
 %type <rec> program decl_list func_decl param_list_opt param_list param
 %type <rec> stmt_list stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt print_inline_stmt print_string_stmt return_stmt if_stmt while_stmt
@@ -62,10 +64,12 @@ char* deref_if_needed(struct record* rec) {
 %type <rec> struct_decl field_list field
 
 // Precedência
+%right NEW     // NEW deve ter precedência alta e ser associativo à direita
+%left DOT
+%left LT LE GT GE EQ NE
 %left PLUS MINUS
 %left MUL DIV
-%left LT LE GT GE EQ NE
-%left DOT
+%right ARROW_LEFT
 
 %%
 
@@ -102,14 +106,19 @@ decl_list:
 // --- Declaração de Struct ---
 
 struct_decl:
-    STRUCT ID LBRACE field_list RBRACE {
+    STRUCT ID {
         current_struct_name = strdup($2);
-        char *typedef_def = cat("typedef struct ", $2, " {\n", $4->code, "} ");
+        // Registrar o tipo IMEDIATAMENTE para uso nos campos
+        insertSymbol($2, $2);
+    } LBRACE field_list RBRACE SEMICOLON {
+        char *typedef_def = cat("typedef struct ", $2, " {\n", $5->code, "} ");
         char *complete_def = cat(typedef_def, $2, ";\n", "", "");
         $$ = createRecord(complete_def, "");
-        free(typedef_def); free(complete_def); free($2); freeRecord($4);
+        free(typedef_def); free(complete_def); 
+        freeRecord($5);
         free(current_struct_name);
         current_struct_name = NULL;
+        free($2);
     }
 ;
 
@@ -212,18 +221,34 @@ stmt:
 
 var_decl_stmt:
     type ID SEMICOLON {
+        // Sempre verifica duplicação no escopo atual quando escopo > 0
+        if (getCurrentScope() > 0 && symbolExistsInCurrentScope($2)) {
+            checkDuplicateVariable($2);
+        }
         char *s = cat("    ", $1->code, " ", $2, ";");
         $$ = createRecord(s, ""); free(s);
         insertSymbol($2, $1->opt1);
         freeRecord($1); free($2);
     }
   | type ID ARROW_LEFT expr SEMICOLON {
+        // Sempre verifica duplicação no escopo atual quando escopo > 0
+        if (getCurrentScope() > 0 && symbolExistsInCurrentScope($2)) {
+            checkDuplicateVariable($2);
+        }
         char* val = deref_if_needed($4);
         char *p = cat("    ", $1->code, " ", $2, " = ");
         char *s = cat(p, val, ";", "", "");
         $$ = createRecord(s, ""); free(p); free(s); free(val);
         insertSymbol($2, $1->opt1);
         freeRecord($1); free($2); freeRecord($4);
+    }
+  | type ID ARROW_LEFT error SEMICOLON {
+        fprintf(stderr, "ERRO DE SINTAXE: expressão inválida ou ausente após '<-' na linha %d\n", yylineno);
+        YYABORT;
+    }
+  | type ID ARROW_LEFT error {
+        fprintf(stderr, "ERRO DE SINTAXE: ';' esperado após expressão na linha %d\n", yylineno);
+        YYABORT;
     }
 ;
 
@@ -238,6 +263,14 @@ assignment_stmt:
         }
         $$ = createRecord(s, ""); free(s); free(val);
         freeRecord($1); freeRecord($3);
+    }
+  | lvalue ARROW_LEFT error SEMICOLON {
+        fprintf(stderr, "ERRO DE SINTAXE: expressão inválida ou ausente após '<-' na linha %d\n", yylineno);
+        YYABORT;
+    }
+  | lvalue ARROW_LEFT error {
+        fprintf(stderr, "ERRO DE SINTAXE: ';' esperado após expressão na linha %d\n", yylineno);
+        YYABORT;
     }
 ;
 
@@ -296,30 +329,34 @@ return_stmt:
 ;
 
 if_stmt:
-    IF LPAREN expr RPAREN LBRACE stmt_list RBRACE {
+    IF LPAREN expr RPAREN LBRACE { pushScope(); } stmt_list RBRACE {
         char *val = deref_if_needed($3);
         char *lend = new_label();
         char *cond = cat("    if (!(", val, ")) goto ", lend, ";");
-        char *body = $6->code;
+        char *body = $7->code;
         char *code = cat(cond, "\n", body, "\n", lend);
         code = cat(code, ":", "", "", "");
-        $$ = createRecord(code, ""); free(cond); free(lend); free(val); freeRecord($3); freeRecord($6);
+        $$ = createRecord(code, ""); free(cond); free(lend); free(val); 
+        freeRecord($3); freeRecord($7);
+        popScope();
     }
 ;
 
 while_stmt:
-    WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE {
+    WHILE LPAREN expr RPAREN LBRACE { pushScope(); } stmt_list RBRACE {
         char *val = deref_if_needed($3);
         char *lbegin = new_label();
         char *lend   = new_label();
         char *start = cat(lbegin, ":\n", "", "", "");
         char *cond  = cat("    if (!(", val, ")) goto ", lend, ";");
-        char *body  = $6->code;
+        char *body  = $7->code;
         char *back  = cat("    goto ", lbegin, ";", "", "");
         char *end   = cat(lend, ":", "", "", "");
         char *tmp   = cat(start, cond, "\n", body, "\n");
         tmp = cat(tmp, back, "\n", end, "");
-        $$ = createRecord(tmp, ""); free(tmp); free(val); freeRecord($3); freeRecord($6);
+        $$ = createRecord(tmp, ""); free(tmp); free(val); 
+        freeRecord($3); freeRecord($7);
+        popScope();
     }
 ;
 
@@ -333,16 +370,28 @@ type:
   | MATRIX   { $$ = createRecord("matrix_t*", "Matrix"); }
   | BST      { $$ = createRecord("TreeNode*", "BST"); }
   | ID       { 
-        char *ptr_type = cat($1, "*", "", "", "");
-        $$ = createRecord(ptr_type, $1); 
-        free(ptr_type); free($1);
+        // Verificar se é um tipo definido pelo usuário (struct)
+        const char* found_type = lookupSymbol($1);
+        if (found_type && strcmp(found_type, $1) == 0) {
+            // É um tipo struct válido
+            char *ptr_type = cat($1, "*", "", "", "");
+            $$ = createRecord(ptr_type, strdup($1)); 
+            free(ptr_type);
+        } else {
+            // Tipo não encontrado, mas permite para compatibilidade
+            char *ptr_type = cat($1, "*", "", "", "");
+            $$ = createRecord(ptr_type, strdup($1)); 
+            free(ptr_type);
+        }
+        free($1);
     }
 ;
 
 lvalue:
     ID { 
+        checkUndeclaredVariable($1);  // Verifica se variável foi declarada
         const char* type = lookupSymbol($1);
-        $$ = createRecord($1, strdup(type ? type : "Unknown"));
+        $$ = createRecord($1, strdup(type ? type : "Int"));
         free($1); 
     }
   | lvalue DOT ID {
@@ -358,21 +407,69 @@ lvalue:
 ;
 
 expr:
-      expr PLUS expr   { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " + ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
-    | expr MINUS expr  { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " - ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
-    | expr MUL expr    { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " * ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
-    | expr DIV expr    { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " / ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+      NEW ID {
+        char* malloc_call = cat("malloc(sizeof(struct ", $2, "))", "", "");
+        $$ = createRecord(malloc_call, $2);
+        free(malloc_call); free($2);
+    }
+    | expr PLUS expr   { 
+        // Verificação de tipos compatíveis
+        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) || 
+            ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
+            fprintf(stderr, "ERRO SEMÂNTICO: operação '+' não suportada para tipos struct na linha %d\n", yylineno);
+            exit(1);
+        }
+        char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); 
+        char *s = cat("(", s1, " + ", s3, ")"); 
+        const char* result_type = (strcmp($1->opt1, "Float") == 0 || strcmp($3->opt1, "Float") == 0) ? "Float" : $1->opt1;
+        $$ = createRecord(s, strdup(result_type)); 
+        free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); 
+    }
+    | expr MINUS expr  { 
+        // Verificação de tipos compatíveis
+        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) || 
+            ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
+            fprintf(stderr, "ERRO SEMÂNTICO: operação '-' não suportada para tipos struct na linha %d\n", yylineno);
+            exit(1);
+        }
+        char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); 
+        char *s = cat("(", s1, " - ", s3, ")"); 
+        const char* result_type = (strcmp($1->opt1, "Float") == 0 || strcmp($3->opt1, "Float") == 0) ? "Float" : $1->opt1;
+        $$ = createRecord(s, strdup(result_type)); 
+        free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); 
+    }
+    | expr MUL expr    { 
+        // Verificação de tipos compatíveis
+        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) || 
+            ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
+            fprintf(stderr, "ERRO SEMÂNTICO: operação '*' não suportada para tipos struct na linha %d\n", yylineno);
+            exit(1);
+        }
+        char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); 
+        char *s = cat("(", s1, " * ", s3, ")"); 
+        const char* result_type = (strcmp($1->opt1, "Float") == 0 || strcmp($3->opt1, "Float") == 0) ? "Float" : $1->opt1;
+        $$ = createRecord(s, strdup(result_type)); 
+        free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); 
+    }
+    | expr DIV expr    { 
+        // Verificação de tipos compatíveis
+        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) || 
+            ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
+            fprintf(stderr, "ERRO SEMÂNTICO: operação '/' não suportada para tipos struct na linha %d\n", yylineno);
+            exit(1);
+        }
+        char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); 
+        char *s = cat("(", s1, " / ", s3, ")"); 
+        const char* result_type = "Float"; // Divisão sempre resulta em Float
+        $$ = createRecord(s, strdup(result_type)); 
+        free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); 
+    }
     | expr LT expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " < ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr LE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " <= ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr GT expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " > ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr GE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " >= ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr EQ expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " == ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr NE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " != ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
-    | NEW ID {
-        char* malloc_call = cat("malloc(sizeof(struct ", $2, "))", "", "");
-        $$ = createRecord(malloc_call, $2);
-        free(malloc_call); free($2);
-    }
     | NULL_LIT {
         $$ = createRecord("NULL", "null");
     }
@@ -426,7 +523,18 @@ arg_list:
 // --- CÓDIGO AUXILIAR ---
 
 void yyerror(const char *s) {
-    fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
+    if (strcmp(s, "syntax error") == 0) {
+        if (strcmp(yytext, "<-") == 0) {
+            fprintf(stderr, "ERRO DE SINTAXE: expressão esperada após '<-' na linha %d\n", yylineno);
+        } else if (strcmp(yytext, "print") == 0) {
+            fprintf(stderr, "ERRO DE SINTAXE: expressão incompleta antes de 'print' na linha %d\n", yylineno);
+        } else {
+            fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
+        }
+    } else {
+        fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
+    }
+    exit(1); // Força saída com erro para garantir detecção nos testes
 }
 
 char* cat(const char *s1, const char *s2, const char *s3, const char *s4, const char *s5) {

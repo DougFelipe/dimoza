@@ -1,79 +1,119 @@
 #!/bin/bash
 
-# Script para compilar e executar o Problema 4 - Números Racionais (Versão Super Simplificada)
+# Script para compilar e executar o Problema 4 (Números Racionais)
 
-echo "=== COMPILAÇÃO E EXECUÇÃO DO PROBLEMA 4 - NÚMEROS RACIONAIS ==="
+echo "===================================================================="
+echo "         COMPILADOR DIMOZA - PROBLEMA 4: NÚMEROS RACIONAIS"
+echo "===================================================================="
+echo ""
 
-# Verificar se o compilador existe
-if [ -f "compiler.exe" ]; then
-    COMPILER="./compiler.exe"
-elif [ -f "analisador.exe" ]; then
-    COMPILER="./analisador.exe"
-else
-    echo "ERRO: Nenhum compilador encontrado!"
-    exit 1
-fi
+# Verificar se os arquivos necessários existem
+echo "🔍 Verificando arquivos necessários..."
 
-# Verificar se o arquivo fonte existe
 if [ ! -f "problema4.txt" ]; then
-    echo "ERRO: Arquivo problema4.txt não encontrado!"
+    echo "❌ ERRO: Arquivo 'problema4.txt' não encontrado!"
+    echo "   Por favor, certifique-se de que o arquivo existe no diretório atual."
     exit 1
 fi
 
-# Verificar se o arquivo de entrada existe
-if [ ! -f "entrada_problema4.txt" ]; then
-    echo "ERRO: Arquivo entrada_problema4.txt não encontrado!"
+if [ ! -f "compiler.exe" ]; then
+    echo "❌ ERRO: Compilador 'compiler.exe' não encontrado!"
+    echo "   Por favor, compile o compilador Dimoza antes de executar este script."
     exit 1
 fi
 
-# Mostrar entrada que será usada
-echo "Entrada utilizada (arquivo entrada_problema4.txt):"
-echo "4 números inteiros representando dois números racionais:"
-echo ""
-echo "Conteúdo da entrada:"
-cat entrada_problema4.txt | tr '\n' ' '
-echo ""
-echo ""
-echo "Interpretação da entrada:"
-echo "Primeiro número racional: $(sed -n '1p' entrada_problema4.txt)/$(sed -n '2p' entrada_problema4.txt)"
-echo "Segundo número racional: $(sed -n '3p' entrada_problema4.txt)/$(sed -n '4p' entrada_problema4.txt)"
-echo ""
-
-# Compilar da linguagem customizada para C
-echo "Compilando problema4.txt..."
-$COMPILER problema4.txt problema4.c
-
-if [ $? -ne 0 ]; then
-    echo "ERRO na compilação da linguagem customizada!"
+if [ ! -d "lib" ]; then
+    echo "❌ ERRO: Diretório 'lib' não encontrado!"
+    echo "   As bibliotecas do compilador são necessárias para a compilação."
     exit 1
 fi
 
-# Compilar o código C gerado
-echo "Compilando código C gerado..."
-gcc -o problema4.exe problema4.c
+echo "✅ Todos os arquivos necessários foram encontrados."
+echo ""
 
-if [ $? -eq 0 ]; then
-    echo "Compilação bem-sucedida!"
-    echo ""
-    
-    echo "=== EXECUÇÃO DO PROGRAMA ==="
+# Limpar arquivos de compilação anteriores
+echo "🧹 Limpando arquivos de compilação anteriores..."
+rm -f problema4.exe problema4.c
+echo "✅ Limpeza concluída."
+echo ""
 
-    
-    # Executar o programa com a entrada
-    ./problema4.exe < entrada_problema4.txt
-    
-    echo ""
-    echo "=== EXECUÇÃO CONCLUÍDA ==="
-    echo ""
-    echo "RESUMO DA IMPLEMENTAÇÃO:"
-    echo "✓ A) Criação de rational_t a partir de inteiros"
-    echo "✓ B) Comparação de igualdade usando produto cruzado"
-    echo "✓ C) Todas as operações: soma, negação, subtração, multiplicação, inverso e divisão"
-    echo "✓ Tratamento de erros (denominador zero, divisão por zero)"
-    echo "✓ Simplificação  (denominador sempre positivo)"
-else
-    echo "ERRO na compilação do código C!"
-    echo ""
-    echo "Se este erro persistir, pode ser um problema fundamental no parser"
-    echo "com passagem de parâmetros por referência."
+# Etapa 1: Compilar código Dimoza para C
+echo "⚙️  ETAPA 1: Compilando código Dimoza para C..."
+echo "   Arquivo fonte: problema4.txt"
+echo "   Arquivo destino: problema4.c"
+echo ""
+
+./compiler.exe problema4.txt problema4.c
+
+# Verificar se a compilação Dimoza foi bem-sucedida
+if [ ! -f "problema4.c" ]; then
+    echo "❌ ERRO: Falha na compilação Dimoza!"
+    echo "   O arquivo 'problema4.c' não foi gerado."
+    echo "   Verifique se há erros de sintaxe no arquivo 'problema4.txt'."
+    exit 1
 fi
+
+echo "✅ Compilação Dimoza bem-sucedida! Arquivo 'problema4.c' gerado."
+echo ""
+
+# Etapa 2: Compilar código C para executável
+echo "⚙️  ETAPA 2: Compilando código C para executável..."
+echo "   Compilando com GCC e bibliotecas do projeto..."
+echo ""
+
+gcc -o problema4.exe problema4.c lib/*.c 2>gcc_erro.log
+
+# Verificar se a compilação C foi bem-sucedida
+if [ ! -f "problema4.exe" ]; then
+    echo "❌ ERRO: Falha na compilação C!"
+    echo "   O executável 'problema4.exe' não foi gerado."
+    if [ -f "gcc_erro.log" ] && [ -s "gcc_erro.log" ]; then
+        echo "   Detalhes do erro:"
+        cat gcc_erro.log
+    fi
+    exit 1
+fi
+
+echo "✅ Compilação C bem-sucedida! Executável 'problema4.exe' gerado."
+echo ""
+
+# Executar o programa em modo interativo
+echo "===================================================================="
+echo "                     EXECUTANDO PROBLEMA 4"
+echo "===================================================================="
+echo "──────────────────────────────────────────────────────────────────"
+echo "                    INSTRUÇÕES DE EXECUÇÃO"
+echo "──────────────────────────────────────────────────────────────────"
+echo ""
+echo "📋 COMO USAR O PROGRAMA:"
+echo "   1. Digite o numerador do primeiro número racional"
+echo "   2. Digite o denominador do primeiro número racional (≠ 0)"
+echo "   3. Digite o numerador do segundo número racional"
+echo "   4. Digite o denominador do segundo número racional (≠ 0)"
+echo "   5. O programa executará automaticamente todas as operações:"
+echo "      • Criação e normalização dos racionais"
+echo "      • Comparação de igualdade"
+echo "      • Todas as operações aritméticas"
+echo "   6. Visualize os resultados formatados"
+echo ""
+echo "💡 DICAS IMPORTANTES:"
+echo "   • Denominadores nunca podem ser zero"
+echo "   • Use números inteiros (positivos ou negativos)"
+echo "   • O programa normaliza automaticamente (denominador positivo)"
+echo "   • Pressione Enter após cada entrada"
+echo ""
+
+echo ""
+
+./problema4.exe
+
+echo ""
+echo "===================================================================="
+echo "                      EXECUÇÃO CONCLUÍDA"
+echo "===================================================================="
+echo ""
+echo "✅ Problema 4 executado com sucesso!"
+echo "📁 Arquivos gerados:"
+echo "   • problema4.c (código C intermediário)"
+echo "   • problema4.exe (executável final)"
+echo ""

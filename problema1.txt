@@ -1,17 +1,53 @@
-// Função principal do programa
+// Programa Interativo de Avaliação de Expressão Aritmética
 Unit main() {
-    // 1. Declara e inicializa as variáveis com os valores dados.
-    //    Usamos o tipo Float, que é nativo da sua linguagem.
-    Float x <- 3.0;
-    Float y <- 2.5;
-    Int c <- 10;
+    // === PROGRAMA DE CÁLCULO DA EXPRESSÃO x² - y + c ===
+    
+    // 1. Apresentação do programa
+    print_string "=== CALCULADORA DE EXPRESSÃO ARITMÉTICA ===";
+    print_string "Este programa calcula: x² - y + c";
+    print_string "Onde x e y são números decimais e c é um inteiro";
+    print_string "";
 
-    // 2. Avalia a expressão x*x - y + c
-    //    A sua linguagem suporta operações aritméticas diretas.
-    //    O compilador gerará código C que lida com a conversão de tipos
-    //    (Int para Float) automaticamente na expressão.
-    Float resultado <- x * x - y + c;
+    // 2. Declaração das variáveis
+    Float x;
+    Float y;  
+    Int c;
+    Float resultado;
 
-    // 3. Imprime o resultado final na tela.
+    // 3. Entrada interativa dos valores
+    print_string "Digite o valor de x (número decimal):";
+    x <- read();
+    
+    print_string "Digite o valor de y (número decimal):";
+    y <- read();
+    
+    print_string "Digite o valor de c (número inteiro):";
+    c <- read();
+    
+    print_string "";
+
+    // 4. Confirmação dos valores recebidos
+    print_string "=== VALORES RECEBIDOS ===";
+    print_string "x (Float) =";
+    print x;
+    print_string "y (Float) =";  
+    print y;
+    print_string "c (Int) =";
+    print c;
+    print_string "";
+
+    // 5. Cálculo da expressão x² - y + c
+    print_string "=== CÁLCULO DA EXPRESSÃO ===";
+    print_string "Calculando: x² - y + c";
+    print_string "Substituindo os valores...";
+    
+    resultado <- x * x - y + c;
+
+    // 6. Apresentação do resultado final
+    print_string "";
+    print_string "=== RESULTADO FINAL ===";
+    print_string "x² - y + c =";
     print resultado;
+    print_string "";
+    print_string "Cálculo realizado com sucesso!";
 }

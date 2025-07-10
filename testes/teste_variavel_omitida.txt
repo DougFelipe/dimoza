@@ -1,0 +1,7 @@
+// Teste 2A: Variáveis omitidas - detectar erros
+Unit main() {
+    Int x <- 10;
+    // Tentativa de usar variável não declarada
+    print y;  // ERRO: y não foi declarada
+    return;
+}

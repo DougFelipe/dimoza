@@ -1,0 +1,18 @@
+// Teste 1C: Conflitos Shift-Reduce
+// Construção que pode gerar conflitos de precedência
+Unit main() {
+    Int a <- 5;
+    Int b <- 3;
+    Int c <- 2;
+    
+    // Expressão com múltiplos operadores para testar precedência
+    Int result <- a + b * c - 1;  // Deve ser: a + (b * c) - 1 = 5 + 6 - 1 = 10
+    print result;
+    
+    // Expressão com operadores relacionais e aritméticos
+    if (a + b > c * 2) {  // Deve ser: (a + b) > (c * 2) = 8 > 4 = true
+        print_string "Precedencia correta!";
+    }
+    
+    return;
+}
