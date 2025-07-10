@@ -1,6 +1,6 @@
 Unit main() {
     // === PROGRAMA DE CLASSIFICAÇÃO DE NÚMEROS POR INTERVALOS ===
-    
+
     // 1. Apresentação do programa ao usuário
     print_string "=== CLASSIFICADOR DE NÚMEROS POR INTERVALOS ===";
     print_string "Este programa classifica números nos seguintes intervalos:";
@@ -15,11 +15,11 @@ Unit main() {
     Int contador_26_50  <- 0;
     Int contador_51_75  <- 0;
     Int contador_76_100 <- 0;
-    
+
     // 3. Variáveis de controle do programa
     Float numero_atual <- 0.0;
     Int programa_ativo <- 1;
-    Int numero_entrada <- 0;  
+    Int numero_entrada <- 0;
 
     // 4. Loop principal de leitura e classificação
     while (programa_ativo == 1) {
@@ -27,56 +27,40 @@ Unit main() {
         print_string "Digite um número (negativo para sair):";
         numero_atual <- read();
 
-        // Verifica condição de parada
+        // Verifica a condição de parada primeiro
         if (numero_atual < 0.0) {
             programa_ativo <- 0;
             print_string "Número negativo detectado. Encerrando programa...";
-        }
-
-        // Processa apenas números válidos (não negativos)
-        if (programa_ativo == 1) {
+        } else {
+            // Se o número não for negativo, processa a classificação
             numero_entrada <- numero_entrada + 1;
-            
-            // === CLASSIFICAÇÃO POR INTERVALOS ===
-            
-            // Intervalo [0, 25]
-            if (numero_atual >= 0.0) {
-                if (numero_atual <= 25.0) {
-                    contador_0_25 <- contador_0_25 + 1;
-                    print_string "-> Classificado no intervalo [0-25]";
-                }
-            }
-            
-            // Intervalo [26, 50]  
-            if (numero_atual >= 26.0) {
+
+            // === CLASSIFICAÇÃO OTIMIZADA COM IF-ELSE ANINHADO ===
+            // Esta estrutura garante que apenas um bloco seja executado por número.
+
+            if (numero_atual <= 25.0) {
+                contador_0_25 <- contador_0_25 + 1;
+                print_string "-> Classificado no intervalo [0-25]";
+            } else {
                 if (numero_atual <= 50.0) {
                     contador_26_50 <- contador_26_50 + 1;
                     print_string "-> Classificado no intervalo [26-50]";
+                } else {
+                    if (numero_atual <= 75.0) {
+                        contador_51_75 <- contador_51_75 + 1;
+                        print_string "-> Classificado no intervalo [51-75]";
+                    } else {
+                        if (numero_atual <= 100.0) {
+                            contador_76_100 <- contador_76_100 + 1;
+                            print_string "-> Classificado no intervalo [76-100]";
+                        } else {
+                            // Este 'else' captura todos os números maiores que 100
+                            print_string "-> AVISO: Número fora dos intervalos monitorados (>100)";
+                        }
+                    }
                 }
             }
-            
-            // Intervalo [51, 75]
-            if (numero_atual >= 51.0) {
-                if (numero_atual <= 75.0) {
-                    contador_51_75 <- contador_51_75 + 1;
-                    print_string "-> Classificado no intervalo [51-75]";
-                }
-            }
-            
-            // Intervalo [76, 100]
-            if (numero_atual >= 76.0) {
-                if (numero_atual <= 100.0) {
-                    contador_76_100 <- contador_76_100 + 1;
-                    print_string "-> Classificado no intervalo [76-100]";
-                }
-            }
-            
-            // Número fora dos intervalos válidos
-            if (numero_atual > 100.0) {
-                print_string "-> AVISO: Número fora dos intervalos monitorados (>100)";
-            }
-            
-            print_string "";  // Linha em branco para melhor legibilidade
+            print_string ""; // Linha em branco para melhor legibilidade
         }
     }
 
@@ -87,19 +71,19 @@ Unit main() {
     print numero_entrada;
     print_string "";
     print_string "Distribuição por intervalos:";
-    
+
     print_string "Intervalo [0-25]:";
     print contador_0_25;
-    
+
     print_string "Intervalo [26-50]:";
     print contador_26_50;
-    
+
     print_string "Intervalo [51-75]:";
     print contador_51_75;
-    
+
     print_string "Intervalo [76-100]:";
     print contador_76_100;
-    
+
     print_string "";
     print_string "Programa finalizado com sucesso!";
 }

@@ -30,6 +30,7 @@ int error_count = 0;
 "print_string"  { return PRINT_STRING; }
 "return"        { return RETURN; }
 "if"            { return IF; }
+"else"          { return ELSE; }
 "while"         { return WHILE; }
 
 "<="            { return LE; }

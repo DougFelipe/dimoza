@@ -44,7 +44,7 @@ char* deref_if_needed(struct record* rec) {
     struct record *rec;
 }
 
-%token UNIT FLOAT INT RATIONAL MATRIX BST PRINT PRINT_INLINE PRINT_STRING RETURN IF WHILE
+%token UNIT FLOAT INT RATIONAL MATRIX BST PRINT PRINT_INLINE PRINT_STRING RETURN IF ELSE WHILE
 %token STRUCT NEW NULL_LIT DOT
 %token REF AMPERSAND
 %token ARROW_LEFT PLUS MINUS MUL DIV
@@ -57,13 +57,17 @@ char* deref_if_needed(struct record* rec) {
 
 %define parse.error verbose
 
+%nonassoc IF_NO_ELSE
+%nonassoc ELSE
+
 // Tipos dos não-terminais
 %type <rec> program decl_list func_decl param_list_opt param_list param
-%type <rec> stmt_list stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt print_inline_stmt print_string_stmt return_stmt if_stmt while_stmt
+%type <rec> block block_content stmt_list_non_empty
+%type <rec> stmt var_decl_stmt assignment_stmt func_call_stmt print_stmt print_inline_stmt print_string_stmt return_stmt if_stmt while_stmt
 %type <rec> type lvalue expr func_call arg_list_opt arg_list
 %type <rec> struct_decl field_list field
 
-// Precedência
+// Precedência de operadores
 %right NEW
 %left DOT
 %left LT LE GT GE EQ NE
@@ -106,17 +110,13 @@ decl_list:
 // --- Declaração de Struct ---
 
 struct_decl:
-    STRUCT ID {
-        current_struct_name = strdup($2);
-        insertSymbol($2, $2);
-    } LBRACE field_list RBRACE SEMICOLON {
+    STRUCT ID { current_struct_name = strdup($2); insertSymbol($2, $2); } LBRACE field_list RBRACE SEMICOLON {
         char *typedef_def = cat("typedef struct ", $2, " {\n", $5->code, "} ");
         char *complete_def = cat(typedef_def, $2, ";\n", "", "");
         $$ = createRecord(complete_def, "");
-        free(typedef_def); free(complete_def); 
+        free(typedef_def); free(complete_def);
         freeRecord($5);
-        free(current_struct_name);
-        current_struct_name = NULL;
+        free(current_struct_name); current_struct_name = NULL;
         free($2);
     }
 ;
@@ -134,12 +134,10 @@ field:
     type ID SEMICOLON {
         if (current_struct_name && $1->opt1 && strcmp($1->opt1, current_struct_name) == 0) {
             char* self_ptr_field = cat("    struct ", current_struct_name, "* ", $2, ";\n");
-            $$ = createRecord(self_ptr_field, "");
-            free(self_ptr_field);
+            $$ = createRecord(self_ptr_field, ""); free(self_ptr_field);
         } else {
             char *s = cat("    ", $1->code, " ", $2, ";\n");
-            $$ = createRecord(s, "");
-            free(s);
+            $$ = createRecord(s, ""); free(s);
         }
         freeRecord($1); free($2);
     }
@@ -148,14 +146,14 @@ field:
 // --- Funções e Statements ---
 
 func_decl:
-    type ID LPAREN param_list_opt RPAREN LBRACE stmt_list RBRACE {
+    type ID LPAREN param_list_opt RPAREN block {
         const char *rt = strcmp($2, "main")==0 ? "int" : $1->code;
         char *h = cat(rt, " ", $2, "(", $4->code);
-        char *b = cat(h, ") {\n", $7->code, "}\n", "");
+        char *b = cat(h, ") ", $6->code, "", "");
         $$ = createRecord(b, ""); free(h); free(b);
-        freeRecord($1); free($2); freeRecord($4); freeRecord($7);
+        freeRecord($1); free($2); freeRecord($4); freeRecord($6);
     }
-  | type ID LPAREN param_list_opt RPAREN SEMICOLON {
+    | type ID LPAREN param_list_opt RPAREN SEMICOLON {
         const char *rt = $1->code;
         char *h = cat(rt, " ", $2, "(", $4->code);
         char *p = cat(h, ");\n", "", "", "");
@@ -185,7 +183,7 @@ param:
         insertSymbol($2, $1->opt1);
         free(s); freeRecord($1); free($2);
     }
-  | REF type ID {
+    | REF type ID {
         const char* c_type = map_type($2->opt1);
         char* ptr_type = cat(c_type, "*", "", "", "");
         char* param_decl = cat(ptr_type, " ", $3, "", "");
@@ -197,11 +195,27 @@ param:
     }
 ;
 
-stmt_list:
-      /* vazio */ { $$ = createRecord("", ""); }
-    | stmt_list stmt {
-        char *s = cat($1->code, $2->code, "\n", "", "");
-        $$ = createRecord(s, ""); free(s);
+block:
+    LBRACE { pushScope(); } block_content RBRACE {
+        char* body = cat("{\n", $3->code, "}\n", "", "");
+        $$ = createRecord(body, "");
+        free(body);
+        popScope();
+        freeRecord($3);
+    }
+;
+
+block_content:
+    /* vazio */ { $$ = createRecord("", ""); }
+    | stmt_list_non_empty
+;
+
+stmt_list_non_empty:
+    stmt
+    | stmt_list_non_empty stmt {
+        char *s = cat($1->code, $2->code, "", "", "");
+        $$ = createRecord(s, "");
+        free(s);
         freeRecord($1); freeRecord($2);
     }
 ;
@@ -216,64 +230,44 @@ stmt:
     | func_call_stmt
     | if_stmt
     | while_stmt
+    | block
 ;
 
 var_decl_stmt:
     type ID SEMICOLON {
-        if (getCurrentScope() > 0 && symbolExistsInCurrentScope($2)) {
-            checkDuplicateVariable($2);
-        }
-        char *s = cat("    ", $1->code, " ", $2, ";");
+        if (getCurrentScope() > 0) { checkDuplicateVariable($2); }
+        char *s = cat("    ", $1->code, " ", $2, ";\n");
         $$ = createRecord(s, ""); free(s);
         insertSymbol($2, $1->opt1);
         freeRecord($1); free($2);
     }
-  | type ID ARROW_LEFT expr SEMICOLON {
-        if (getCurrentScope() > 0 && symbolExistsInCurrentScope($2)) {
-            checkDuplicateVariable($2);
-        }
+    | type ID ARROW_LEFT expr SEMICOLON {
+        if (getCurrentScope() > 0) { checkDuplicateVariable($2); }
         char* val = deref_if_needed($4);
         char *p = cat("    ", $1->code, " ", $2, " = ");
-        char *s = cat(p, val, ";", "", "");
+        char *s = cat(p, val, ";\n", "", "");
         $$ = createRecord(s, ""); free(p); free(s); free(val);
         insertSymbol($2, $1->opt1);
         freeRecord($1); free($2); freeRecord($4);
     }
-  | type ID ARROW_LEFT error SEMICOLON {
-        fprintf(stderr, "ERRO DE SINTAXE: expressão inválida ou ausente após '<-' na linha %d\n", yylineno);
-        YYABORT;
-    }
-  | type ID ARROW_LEFT error {
-        fprintf(stderr, "ERRO DE SINTAXE: ';' esperado após expressão na linha %d\n", yylineno);
-        YYABORT;
-    }
+    | type ID ARROW_LEFT error { yyerror("';' esperado após expressão"); YYABORT; }
 ;
 
 assignment_stmt:
     lvalue ARROW_LEFT expr SEMICOLON {
         char *s;
         char* val = deref_if_needed($3);
-        if ($1->opt1 && strncmp($1->opt1, "ref", 3) == 0) {
-            s = cat("    *", $1->code, " = ", val, ";");
-        } else {
-            s = cat("    ", $1->code, " = ", val, ";");
-        }
+        if ($1->opt1 && strncmp($1->opt1, "ref", 3) == 0) { s = cat("    *", $1->code, " = ", val, ";\n"); }
+        else { s = cat("    ", $1->code, " = ", val, ";\n"); }
         $$ = createRecord(s, ""); free(s); free(val);
         freeRecord($1); freeRecord($3);
     }
-  | lvalue ARROW_LEFT error SEMICOLON {
-        fprintf(stderr, "ERRO DE SINTAXE: expressão inválida ou ausente após '<-' na linha %d\n", yylineno);
-        YYABORT;
-    }
-  | lvalue ARROW_LEFT error {
-        fprintf(stderr, "ERRO DE SINTAXE: ';' esperado após expressão na linha %d\n", yylineno);
-        YYABORT;
-    }
+    | lvalue ARROW_LEFT error { yyerror("';' esperado após expressão"); YYABORT; }
 ;
 
 func_call_stmt:
     func_call SEMICOLON {
-        char *s = cat("    ", $1->code, ";", "", "");
+        char *s = cat("    ", $1->code, ";\n", "", "");
         $$ = createRecord(s, ""); free(s); freeRecord($1);
     }
 ;
@@ -282,13 +276,9 @@ print_stmt:
     PRINT expr SEMICOLON {
         char *s;
         char* val = deref_if_needed($2);
-        if (strcmp($2->opt1, "Float") == 0) {
-            s = cat("    printf(\"%f\\n\", ", val, ");", "", "");
-        } else if (strcmp($2->opt1, "Int") == 0) {
-            s = cat("    printf(\"%d\\n\", ", val, ");", "", "");
-        } else {
-            s = cat("    printf(\"unsupported_print_type\\n\");", "", "", "", "");
-        }
+        if (strcmp($2->opt1, "Float") == 0) { s = cat("    printf(\"%f\\n\", ", val, ");\n", "", ""); }
+        else if (strcmp($2->opt1, "Int") == 0) { s = cat("    printf(\"%d\\n\", ", val, ");\n", "", ""); }
+        else { s = cat("    printf(\"unsupported_print_type\\n\");", "", "", "", ""); }
         $$ = createRecord(s, ""); free(s); free(val); freeRecord($2);
     }
 ;
@@ -296,7 +286,7 @@ print_stmt:
 print_inline_stmt:
     PRINT_INLINE expr SEMICOLON {
         char* val = deref_if_needed($2);
-        char* s = cat("    printf(\"%d \", ", val, ");", "", "");
+        char* s = cat("    printf(\"%d \", ", val, ");\n", "", "");
         $$ = createRecord(s, "");
         free(s); free(val); freeRecord($2);
     }
@@ -309,7 +299,7 @@ print_string_stmt:
         char *clean_str = malloc(len - 1);
         strncpy(clean_str, str + 1, len - 2);
         clean_str[len - 2] = '\0';
-        char *s = cat("    printf(\"", clean_str, "\\n\");", "", "");
+        char *s = cat("    printf(\"", clean_str, "\\n\");\n", "", "");
         $$ = createRecord(s, ""); free(s); free(clean_str); free($2);
     }
 ;
@@ -317,43 +307,73 @@ print_string_stmt:
 return_stmt:
     RETURN expr SEMICOLON {
         char* val = deref_if_needed($2);
-        char *s = cat("    return ", val, ";", "", "");
+        char *s = cat("    return ", val, ";\n", "", "");
         $$ = createRecord(s, ""); free(s); free(val); freeRecord($2);
     }
-  | RETURN SEMICOLON {
-        $$ = createRecord("    return;", "");
+    | RETURN SEMICOLON {
+        $$ = createRecord("    return;\n", "");
     }
 ;
 
 if_stmt:
-    IF LPAREN expr RPAREN LBRACE { pushScope(); } stmt_list RBRACE {
+    IF LPAREN expr RPAREN block %prec IF_NO_ELSE {
         char *val = deref_if_needed($3);
         char *lend = new_label();
-        char *cond = cat("    if (!(", val, ")) goto ", lend, ";");
-        char *body = $7->code;
-        char *code = cat(cond, "\n", body, "\n", lend);
-        code = cat(code, ":", "", "", "");
-        $$ = createRecord(code, ""); free(cond); free(lend); free(val); 
-        freeRecord($3); freeRecord($7);
-        popScope();
+        char *cond_code = cat("    if (!(", val, ")) goto ", lend, ";\n");
+        char *body_code = $5->code;
+        
+        // Correção: Adicionado "" para completar os 5 argumentos
+        char* part1 = cat(cond_code, body_code, "\n", "", "");
+        char* final_code = cat(part1, lend, ":;\n", "", "");
+
+        $$ = createRecord(final_code, "");
+        
+        free(val); free(lend); free(cond_code); free(part1); free(final_code);
+        freeRecord($3); freeRecord($5);
+    }
+    | IF LPAREN expr RPAREN block ELSE block {
+        char *val = deref_if_needed($3);
+        char *lelse = new_label();
+        char *lend = new_label();
+        char *if_body = $5->code;
+        char *else_body = $7->code;
+
+        // Correção: Todas as chamadas a 'cat' agora têm 5 argumentos
+        char *p1 = cat("    if (!(", val, ")) goto ", lelse, ";\n");
+        char *p2 = cat(p1, if_body, "\n", "", "");
+        char *p3 = cat(p2, "    goto ", lend, ";\n", "");
+        char *p4 = cat(p3, lelse, ":\n", "", "");
+        char *p5 = cat(p4, else_body, "\n", "", "");
+        char *final_code = cat(p5, lend, ":;\n", "", "");
+
+        $$ = createRecord(final_code, "");
+        
+        free(val); free(lelse); free(lend);
+        free(p1); free(p2); free(p3); free(p4); free(p5);
+        free(final_code);
+        freeRecord($3); freeRecord($5); freeRecord($7);
     }
 ;
 
 while_stmt:
-    WHILE LPAREN expr RPAREN LBRACE { pushScope(); } stmt_list RBRACE {
+    WHILE LPAREN expr RPAREN block {
         char *val = deref_if_needed($3);
         char *lbegin = new_label();
         char *lend   = new_label();
-        char *start = cat(lbegin, ":\n", "", "", "");
-        char *cond  = cat("    if (!(", val, ")) goto ", lend, ";");
-        char *body  = $7->code;
-        char *back  = cat("    goto ", lbegin, ";", "", "");
-        char *end   = cat(lend, ":", "", "", "");
-        char *tmp   = cat(start, cond, "\n", body, "\n");
-        tmp = cat(tmp, back, "\n", end, "");
-        $$ = createRecord(tmp, ""); free(tmp); free(val); 
-        freeRecord($3); freeRecord($7);
-        popScope();
+        char *start_label = cat(lbegin, ":\n", "", "", "");
+        char *cond_code   = cat("    if (!(", val, ")) goto ", lend, ";\n");
+        char *body_code   = $5->code;
+        char *goto_begin  = cat("    goto ", lbegin, ";\n", "", "");
+        char *end_label   = cat(lend, ":;\n", "", "", "");
+        char *p1 = cat(start_label, cond_code, "", "", "");
+        char *p2 = cat(p1, body_code, "", "", "");
+        char *p3 = cat(p2, goto_begin, "", "", "");
+        char *final_code = cat(p3, end_label, "", "", "");
+        $$ = createRecord(final_code, "");
+        free(val); free(lbegin); free(lend);
+        free(start_label); free(cond_code); free(goto_begin); free(end_label);
+        free(p1); free(p2); free(p3); free(final_code);
+        freeRecord($3); freeRecord($5);
     }
 ;
 
@@ -361,12 +381,12 @@ while_stmt:
 
 type:
     INT      { $$ = createRecord("int", "Int"); }
-  | FLOAT    { $$ = createRecord("float", "Float"); }
-  | UNIT     { $$ = createRecord("void", "Unit"); }
-  | RATIONAL { $$ = createRecord("rational_t", "Rational"); }
-  | MATRIX   { $$ = createRecord("matrix_t*", "Matrix"); }
-  | BST      { $$ = createRecord("TreeNode*", "BST"); }
-  | ID       {
+    | FLOAT    { $$ = createRecord("float", "Float"); }
+    | UNIT     { $$ = createRecord("void", "Unit"); }
+    | RATIONAL { $$ = createRecord("rational_t", "Rational"); }
+    | MATRIX   { $$ = createRecord("matrix_t*", "Matrix"); }
+    | BST      { $$ = createRecord("TreeNode*", "BST"); }
+    | ID       {
         const char* found_type = lookupSymbol($1);
         if (found_type && strcmp(found_type, $1) == 0) {
             char *ptr_type = cat($1, "*", "", "", "");
@@ -386,11 +406,10 @@ lvalue:
         checkUndeclaredVariable($1);
         const char* type = lookupSymbol($1);
         $$ = createRecord($1, strdup(type ? type : "Int"));
-        free($1);
     }
-  | lvalue DOT ID {
+    | lvalue DOT ID {
         char* member_access = cat($1->code, "->", $3, "", "");
-        const char* field_type = "Int"; // Assume Int por padrão
+        const char* field_type = "Int";
         if (strcmp($3, "left") == 0 || strcmp($3, "right") == 0) {
             field_type = $1->opt1;
         }
@@ -404,13 +423,11 @@ expr:
       NEW ID {
         char* malloc_call = cat("malloc(sizeof(struct ", $2, "))", "", "");
         $$ = createRecord(malloc_call, $2);
-        free(malloc_call); free($2);
+        free(malloc_call);
     }
     | expr PLUS expr   {
-        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) ||
-            ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
-            fprintf(stderr, "ERRO SEMÂNTICO: operação '+' não suportada para tipos struct na linha %d\n", yylineno);
-            exit(1);
+        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) || ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
+            yyerror("operação '+' não suportada para tipos struct"); exit(1);
         }
         char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3);
         char *s = cat("(", s1, " + ", s3, ")");
@@ -419,10 +436,8 @@ expr:
         free(s); free(s1); free(s3); freeRecord($1); freeRecord($3);
     }
     | expr MINUS expr  {
-        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) ||
-            ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
-            fprintf(stderr, "ERRO SEMÂNTICO: operação '-' não suportada para tipos struct na linha %d\n", yylineno);
-            exit(1);
+        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) || ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
+            yyerror("operação '-' não suportada para tipos struct"); exit(1);
         }
         char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3);
         char *s = cat("(", s1, " - ", s3, ")");
@@ -431,10 +446,8 @@ expr:
         free(s); free(s1); free(s3); freeRecord($1); freeRecord($3);
     }
     | expr MUL expr    {
-        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) ||
-            ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
-            fprintf(stderr, "ERRO SEMÂNTICO: operação '*' não suportada para tipos struct na linha %d\n", yylineno);
-            exit(1);
+        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) || ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
+            yyerror("operação '*' não suportada para tipos struct"); exit(1);
         }
         char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3);
         char *s = cat("(", s1, " * ", s3, ")");
@@ -443,14 +456,12 @@ expr:
         free(s); free(s1); free(s3); freeRecord($1); freeRecord($3);
     }
     | expr DIV expr    {
-        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) ||
-            ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
-            fprintf(stderr, "ERRO SEMÂNTICO: operação '/' não suportada para tipos struct na linha %d\n", yylineno);
-            exit(1);
+        if (($1->opt1 && strncmp($1->opt1, "TreeNode", 8) == 0) || ($3->opt1 && strncmp($3->opt1, "TreeNode", 8) == 0)) {
+            yyerror("operação '/' não suportada para tipos struct"); exit(1);
         }
         char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3);
         char *s = cat("(", s1, " / ", s3, ")");
-        const char* result_type = "Float"; // Divisão sempre resulta em Float
+        const char* result_type = "Float";
         $$ = createRecord(s, strdup(result_type));
         free(s); free(s1); free(s3); freeRecord($1); freeRecord($3);
     }
@@ -460,15 +471,13 @@ expr:
     | expr GE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " >= ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr EQ expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " == ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr NE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " != ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
-    | NULL_LIT {
-        $$ = createRecord("NULL", "null");
-    }
-    | lvalue { $$ = $1; }
+    | NULL_LIT         { $$ = createRecord("NULL", "null"); }
+    | lvalue           { $$ = $1; }
     | LPAREN expr RPAREN { $$ = $2; }
-    | AMPERSAND ID {
+    | AMPERSAND ID     {
         char* addr_expr = cat("&", $2, "", "", "");
         const char* base_type = lookupSymbol($2);
-        char* ptr_type_name = cat("ref", base_type, "", "", "");
+        char* ptr_type_name = cat("ref", base_type ? base_type : "", "", "", "");
         $$ = createRecord(addr_expr, ptr_type_name);
         free(addr_expr); free(ptr_type_name); free($2);
     }
@@ -481,11 +490,8 @@ func_call:
     ID LPAREN arg_list_opt RPAREN {
         char *s = cat($1, "(", $3->code, ")", "");
         const char *type = "Unit";
-        if (strcmp($1, "get_height") == 0 || strcmp($1, "max") == 0) {
-            type = "Int";
-        } else if (strcmp($1, "insert") == 0) {
-            type = "TreeNode";
-        }
+        if (strcmp($1, "get_height") == 0 || strcmp($1, "max") == 0) { type = "Int"; }
+        else if (strcmp($1, "insert") == 0) { type = "TreeNode"; }
         $$ = createRecord(s, (char*)type);
         free(s); free($1); freeRecord($3);
     }
@@ -512,21 +518,15 @@ arg_list:
 // --- CÓDIGO AUXILIAR ---
 
 void yyerror(const char *s) {
-    if (strcmp(s, "syntax error") == 0) {
-        if (strcmp(yytext, "<-") == 0) {
-            fprintf(stderr, "ERRO DE SINTAXE: expressão esperada após '<-' na linha %d\n", yylineno);
-        } else if (strcmp(yytext, "print") == 0) {
-            fprintf(stderr, "ERRO DE SINTAXE: expressão incompleta antes de 'print' na linha %d\n", yylineno);
-        } else {
-            fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
-        }
-    } else {
-        fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
-    }
+    fprintf(stderr, "ERRO DE SINTAXE: %s na linha %d perto de '%s'\n", s, yylineno, yytext);
     exit(1);
 }
 
 char* cat(const char *s1, const char *s2, const char *s3, const char *s4, const char *s5) {
+    if (!s1 || !s2 || !s3 || !s4 || !s5) {
+        fprintf(stderr, "Erro: argumento nulo passado para cat()\n");
+        exit(1);
+    }
     size_t len = strlen(s1) + strlen(s2) + strlen(s3) + strlen(s4) + strlen(s5) + 1;
     char *o = malloc(len);
     if (!o) { fprintf(stderr, "Erro de malloc!\n"); exit(1); }
@@ -535,6 +535,7 @@ char* cat(const char *s1, const char *s2, const char *s3, const char *s4, const 
 }
 
 const char* map_type(const char* o) {
+    if (o == NULL) return "void";
     if (strcmp(o, "Int") == 0) return "int";
     if (strcmp(o, "Float") == 0) return "float";
     if (strcmp(o, "Unit") == 0) return "void";
