@@ -1,0 +1,17 @@
+// Teste 3B: Tipos incompatíveis - detectar erros
+struct TreeNode {
+    Int key;
+    TreeNode left;
+    TreeNode right;
+};
+
+Unit main() {
+    Int a <- 10;
+    TreeNode node <- NEW TreeNode;
+    
+    // Tentativas de operações com tipos incompatíveis
+    Int invalid1 <- a + node;     // ERRO: Int + TreeNode incompatível
+    Float invalid2 <- node * 2.5; // ERRO: TreeNode * Float incompatível
+    
+    return;
+}

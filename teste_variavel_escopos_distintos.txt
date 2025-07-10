@@ -1,0 +1,18 @@
+// Teste 2C: Variáveis duplicadas em escopos distintos e não-aninhados
+// Usando blocos if para simular escopos distintos
+Unit main() {
+    Int condition1 <- 1;
+    Int condition2 <- 1;
+    
+    if (condition1 > 0) {
+        Int x <- 10;  // x no primeiro escopo
+        print x;
+    }
+    
+    if (condition2 > 0) {
+        Int x <- 20;  // x no segundo escopo (OK, escopo diferente)
+        print x;
+    }
+    
+    return;
+}

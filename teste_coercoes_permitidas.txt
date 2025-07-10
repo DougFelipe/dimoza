@@ -1,0 +1,16 @@
+// Teste 3A: Coerções permitidas - compatibilização de tipos
+Unit main() {
+    Int a <- 10;
+    Float b <- 3.14;
+    
+    // Coerções permitidas (Int para Float)
+    Float result1 <- a + b;     // Int + Float = Float
+    Float result2 <- a * 2.5;   // Int * Float = Float
+    Int result3 <- a + 5;       // Int + Int = Int
+    
+    print result1;
+    print result2;
+    print result3;
+    
+    return;
+}

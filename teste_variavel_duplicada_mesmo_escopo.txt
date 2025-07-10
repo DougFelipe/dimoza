@@ -1,0 +1,10 @@
+// Teste 2B: Variáveis duplicadas no mesmo escopo - detectar erros
+Unit main() {
+    Int condition <- 1;
+    if (condition > 0) {
+        Int x <- 10;
+        Float x <- 3.14;  // ERRO: x já foi declarada no mesmo escopo
+        print x;
+    }
+    return;
+}

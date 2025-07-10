@@ -1,0 +1,18 @@
+// Teste 1B: Derivação de Regras Sintáticas
+// Programa que demonstra a derivação completa das regras
+Unit main() {
+    // Declaração de variáveis seguindo as regras gramaticais
+    Int x <- 10;
+    Float y <- 3.14;
+    
+    // Estruturas de controle seguindo as regras
+    if (x > 5) {
+        print y;
+        while (x > 0) {
+            x <- x - 1;
+        }
+    }
+    
+    // Retorno seguindo a regra de função
+    return;
+}

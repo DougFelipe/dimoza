@@ -1,0 +1,28 @@
+// Teste 4A: Passagem de parâmetros por valor e referência
+Unit modifyByValue(Int x) {
+    x <- x + 10;  // Modifica apenas a cópia local
+    return;
+}
+
+Unit modifyByReference(ref Int x) {
+    x <- x + 10;  // Modifica o valor original
+    return;
+}
+
+Unit main() {
+    Int a <- 5;
+    Int b <- 5;
+    
+    print_string "Valores iniciais:";
+    print a;  // Deve imprimir 5
+    print b;  // Deve imprimir 5
+    
+    modifyByValue(a);      // a não deve ser alterado
+    modifyByReference(&b); // b deve ser alterado
+    
+    print_string "Valores apos funcoes:";
+    print a;  // Deve imprimir 5 (inalterado)
+    print b;  // Deve imprimir 15 (alterado)
+    
+    return;
+}
