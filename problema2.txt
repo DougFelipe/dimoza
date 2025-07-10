@@ -19,7 +19,7 @@ Unit main() {
     // 3. Variáveis de controle do programa
     Float numero_atual <- 0.0;
     Int programa_ativo <- 1;
-    Int numero_entrada <- 0;  // Contador de números inseridos
+    Int numero_entrada <- 0;  
 
     // 4. Loop principal de leitura e classificação
     while (programa_ativo == 1) {
