@@ -62,10 +62,12 @@ char* deref_if_needed(struct record* rec) {
 %type <rec> struct_decl field_list field
 
 // Precedência
+%right NEW     // NEW deve ter precedência alta e ser associativo à direita
+%left DOT
+%left LT LE GT GE EQ NE
 %left PLUS MINUS
 %left MUL DIV
-%left LT LE GT GE EQ NE
-%left DOT
+%right ARROW_LEFT
 
 %%
 
@@ -102,14 +104,19 @@ decl_list:
 // --- Declaração de Struct ---
 
 struct_decl:
-    STRUCT ID LBRACE field_list RBRACE {
+    STRUCT ID {
         current_struct_name = strdup($2);
-        char *typedef_def = cat("typedef struct ", $2, " {\n", $4->code, "} ");
+        // Registrar o tipo IMEDIATAMENTE para uso nos campos
+        insertSymbol($2, $2);
+    } LBRACE field_list RBRACE SEMICOLON {
+        char *typedef_def = cat("typedef struct ", $2, " {\n", $5->code, "} ");
         char *complete_def = cat(typedef_def, $2, ";\n", "", "");
         $$ = createRecord(complete_def, "");
-        free(typedef_def); free(complete_def); free($2); freeRecord($4);
+        free(typedef_def); free(complete_def); 
+        freeRecord($5);
         free(current_struct_name);
         current_struct_name = NULL;
+        free($2);
     }
 ;
 
@@ -333,9 +340,20 @@ type:
   | MATRIX   { $$ = createRecord("matrix_t*", "Matrix"); }
   | BST      { $$ = createRecord("TreeNode*", "BST"); }
   | ID       { 
-        char *ptr_type = cat($1, "*", "", "", "");
-        $$ = createRecord(ptr_type, $1); 
-        free(ptr_type); free($1);
+        // Verificar se é um tipo definido pelo usuário (struct)
+        const char* found_type = lookupSymbol($1);
+        if (found_type && strcmp(found_type, $1) == 0) {
+            // É um tipo struct válido
+            char *ptr_type = cat($1, "*", "", "", "");
+            $$ = createRecord(ptr_type, strdup($1)); 
+            free(ptr_type);
+        } else {
+            // Tipo não encontrado, mas permite para compatibilidade
+            char *ptr_type = cat($1, "*", "", "", "");
+            $$ = createRecord(ptr_type, strdup($1)); 
+            free(ptr_type);
+        }
+        free($1);
     }
 ;
 
@@ -358,7 +376,12 @@ lvalue:
 ;
 
 expr:
-      expr PLUS expr   { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " + ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
+      NEW ID {
+        char* malloc_call = cat("malloc(sizeof(struct ", $2, "))", "", "");
+        $$ = createRecord(malloc_call, $2);
+        free(malloc_call); free($2);
+    }
+    | expr PLUS expr   { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " + ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr MINUS expr  { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " - ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr MUL expr    { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " * ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr DIV expr    { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " / ", s3, ")"); $$ = createRecord(s, $1->opt1); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
@@ -368,11 +391,6 @@ expr:
     | expr GE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " >= ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr EQ expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " == ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
     | expr NE expr     { char* s1 = deref_if_needed($1); char* s3 = deref_if_needed($3); char *s = cat("(", s1, " != ", s3, ")"); $$ = createRecord(s, "Int"); free(s); free(s1); free(s3); freeRecord($1); freeRecord($3); }
-    | NEW ID {
-        char* malloc_call = cat("malloc(sizeof(struct ", $2, "))", "", "");
-        $$ = createRecord(malloc_call, $2);
-        free(malloc_call); free($2);
-    }
     | NULL_LIT {
         $$ = createRecord("NULL", "null");
     }

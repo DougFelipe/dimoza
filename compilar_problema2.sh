@@ -24,7 +24,7 @@ if [ ! -f "problema2.txt" ]; then
 fi
 
 echo "Gerando código C a partir de problema2.txt..."
-$COMPILER problema2.txt saida_problema2.c
+$COMPILER problema2.txt problema2.c
 
 # Verificar se a compilação foi bem-sucedida
 if [ $? -ne 0 ]; then
@@ -32,11 +32,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Código C gerado com sucesso em saida_problema2.c"
+echo "Código C gerado com sucesso em problema2.c"
 
 # Compilar o código C gerado
 echo "Compilando código C para executável..."
-gcc -o problema2.exe saida_problema2.c
+gcc -o problema2.exe problema2.c
 
 if [ $? -ne 0 ]; then
     echo "Erro na compilação do código C!"

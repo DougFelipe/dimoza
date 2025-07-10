@@ -26,6 +26,7 @@ void insertSymbol(const char *name, const char *type) {
 }
 
 const char *lookupSymbol(const char *name) {
+    // Debug: imprimir tentativas de lookup
     for (Sym *s = symbols; s; s = s->next) {
         if (strcmp(s->name, name) == 0) {
             return s->type;

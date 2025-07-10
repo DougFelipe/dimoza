@@ -35,7 +35,7 @@ echo ""
 
 # Compilar da linguagem customizada para C
 echo "Compilando problema1.txt..."
-$COMPILER problema1.txt saida_problema1.c
+$COMPILER problema1.txt problema1.c
 
 if [ $? -ne 0 ]; then
     echo "ERRO na compilação da linguagem customizada!"
@@ -44,7 +44,7 @@ fi
 
 # Compilar o código C gerado
 echo "Compilando código C gerado..."
-gcc -o problema1.exe saida_problema1.c
+gcc -o problema1.exe problema1.c
 
 if [ $? -eq 0 ]; then
     echo "Compilação bem-sucedida!"

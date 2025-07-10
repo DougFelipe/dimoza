@@ -16,9 +16,15 @@
 "Rational"      { return RATIONAL; }
 "Matrix"        { return MATRIX; }
 "BST"           { return BST; }
+"struct"        { return STRUCT; }
+"new"           { return NEW; }
+"NEW"           { return NEW; }
+"null"          { return NULL_LIT; }
+"."             { return DOT; }
 "ref"           { return REF; }
 
 "print"         { return PRINT; }
+"print_inline"  { return PRINT_INLINE; }
 "print_string"  { return PRINT_STRING; }
 "return"        { return RETURN; }
 "if"            { return IF; }
