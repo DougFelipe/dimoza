@@ -262,12 +262,12 @@ Unit print_level_visual(TreeNode root, Int target_level, Int spacing) {
         }
         
         if (root == null) {
-            print_string " --- ";
+            print_string "---";
         }
         
-        // Adiciona espaçamento entre nós do mesmo nível
+        // Adiciona espaçamento entre nós do mesmo nível (mais compacto)
         Int espacos <- 1;
-        while (espacos <= spacing) {
+        while (espacos <= 4) {
             print_string " ";
             espacos <- espacos + 1;
         }
@@ -308,7 +308,7 @@ Unit print_connections_simple(TreeNode root, Int target_level, Int spacing) {
                     print_string " ";
                 }
                 
-                print_string "   ";
+                print_string " ";
                 
                 if (root.right != null) {
                     print_string "\\";
@@ -320,13 +320,13 @@ Unit print_connections_simple(TreeNode root, Int target_level, Int spacing) {
             }
             
             if (tem_filhos == 0) {
-                print_string "     "; // Espaço para nó sem filhos
+                print_string "   "; // Espaço para nó sem filhos (mais compacto)
             }
         }
         
-        // Espaçamento entre grupos de conexões
+        // Espaçamento entre grupos de conexões (reduzido)
         Int espacos2 <- 1;
-        while (espacos2 <= spacing) {
+        while (espacos2 <= 2) {
             print_string " ";
             espacos2 <- espacos2 + 1;
         }
@@ -362,27 +362,26 @@ Unit print_level_order(TreeNode root) {
     
     print_string "VISUALIZAÇÃO HIERÁRQUICA DA BST";
     print_string "===============================================";
-    print_string "   Altura da árvore: ";
+    print_string "Altura da árvore: ";
     print height;
     print_string " níveis";
     print_string "";
-    print_string "   Legenda: [valor] = nó existente - --- = nó ausente";
-    print_string "            /\\ = conexões pai-filho";
+    print_string "Legenda: [valor] = nó existente | --- = nó ausente";
+    print_string "         /\\ = conexões pai-filho";
     print_string "";
     
-    // Versão simplificada: impressão nível por nível com espaçamento visual
+    // Versão simplificada: impressão nível por nível com espaçamento visual compacto
     Int level <- 1;
     while (level <= height) {
-        // Calcula espaçamento para centralizar cada nível
-        Int spaces_before <- (height - level) * 6;
-        Int spaces_between <- (level - 1) * 4 + 8;
+        // Calcula espaçamento para centralizar cada nível (reduzido)
+        Int spaces_before <- (height - level) * 2;
         
         // Linha indicadora do nível
         print_string "Nível ";
         print level;
         print_string ": ";
         
-        // Espaçamento inicial para centralizar
+        // Espaçamento inicial para centralizar (compacto)
         Int espacamento <- 1;
         while (espacamento <= spaces_before) {
             print_string " ";
@@ -390,18 +389,18 @@ Unit print_level_order(TreeNode root) {
         }
         
         // Imprime os nós deste nível
-        print_level_visual(root, level, spaces_between);
+        print_level_visual(root, level, 0);
         print_string "";
         
         // Imprime linha de conexões (exceto para o último nível)
         if (level < height) {
             print_string "        "; // Alinha com "Nível X: "
             Int espacamento2 <- 1;
-            while (espacamento2 <= spaces_before - 2) {
+            while (espacamento2 <= spaces_before) {
                 print_string " ";
                 espacamento2 <- espacamento2 + 1;
             }
-            print_connections_simple(root, level, spaces_between);
+            print_connections_simple(root, level, 0);
             print_string "";
         }
         
@@ -409,15 +408,6 @@ Unit print_level_order(TreeNode root) {
     }
     
     print_string "";
-    print_string "===============================================";
-    print_string "OK: Visualização hierárquica da BST finalizada";
-    print_string "";
-    print_string "INTERPRETAÇÃO DA ESTRUTURA:";
-    print_string "   • Cada nível mostra os nós na mesma profundidade";
-    print_string "   • Nós centralizados mostram a hierarquia visual";
-    print_string "   • Conexões /\\ indicam relações pai-filho";
-    print_string "   • Subárvore esquerda fica à esquerda do pai";
-    print_string "   • Subárvore direita fica à direita do pai";
 }
 
 // =================================================================

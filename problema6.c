@@ -243,12 +243,12 @@ void print_level_visual(TreeNode* root, int target_level, int spacing) {
 
 L33:
     if (!((root == NULL))) goto L34;
-    printf(" --- \n");
+    printf("---\n");
 
 L34:
     int espacos = 1;
 L35:
-    if (!((espacos <= spacing))) goto L36;
+    if (!((espacos <= 4))) goto L36;
     printf(" \n");
     espacos = (espacos + 1);
 
@@ -291,7 +291,7 @@ L42:
     printf(" \n");
 
 L43:
-    printf("   \n");
+    printf(" \n");
     if (!((root->right != NULL))) goto L44;
     printf("\\\n");
 
@@ -303,14 +303,14 @@ L45:
 
 L46:
     if (!((tem_filhos == 0))) goto L47;
-    printf("     \n");
+    printf("   \n");
 
 L47:
 
 L48:
     int espacos2 = 1;
 L49:
-    if (!((espacos2 <= spacing))) goto L50;
+    if (!((espacos2 <= 2))) goto L50;
     printf(" \n");
     espacos2 = (espacos2 + 1);
 
@@ -347,18 +347,17 @@ L56:
     int height = get_height(root);
     printf("VISUALIZAÇÃO HIERÁRQUICA DA BST\n");
     printf("===============================================\n");
-    printf("   Altura da árvore: \n");
+    printf("Altura da árvore: \n");
     printf("%d\n", height);
     printf(" níveis\n");
     printf("\n");
-    printf("   Legenda: [valor] = nó existente - --- = nó ausente\n");
-    printf("            /\\ = conexões pai-filho\n");
+    printf("Legenda: [valor] = nó existente | --- = nó ausente\n");
+    printf("         /\\ = conexões pai-filho\n");
     printf("\n");
     int level = 1;
 L62:
     if (!((level <= height))) goto L63;
-    int spaces_before = ((height - level) * 6);
-    int spaces_between = (((level - 1) * 4) + 8);
+    int spaces_before = ((height - level) * 2);
     printf("Nível \n");
     printf("%d\n", level);
     printf(": \n");
@@ -370,19 +369,19 @@ L57:
 
     goto L57;
 L58:
-    print_level_visual(root, level, spaces_between);
+    print_level_visual(root, level, 0);
     printf("\n");
     if (!((level < height))) goto L61;
     printf("        \n");
     int espacamento2 = 1;
 L59:
-    if (!((espacamento2 <= (spaces_before - 2)))) goto L60;
+    if (!((espacamento2 <= spaces_before))) goto L60;
     printf(" \n");
     espacamento2 = (espacamento2 + 1);
 
     goto L59;
 L60:
-    print_connections_simple(root, level, spaces_between);
+    print_connections_simple(root, level, 0);
     printf("\n");
 
 L61:
@@ -391,15 +390,6 @@ L61:
     goto L62;
 L63:
     printf("\n");
-    printf("===============================================\n");
-    printf("OK: Visualização hierárquica da BST finalizada\n");
-    printf("\n");
-    printf("INTERPRETAÇÃO DA ESTRUTURA:\n");
-    printf("   • Cada nível mostra os nós na mesma profundidade\n");
-    printf("   • Nós centralizados mostram a hierarquia visual\n");
-    printf("   • Conexões /\\ indicam relações pai-filho\n");
-    printf("   • Subárvore esquerda fica à esquerda do pai\n");
-    printf("   • Subárvore direita fica à direita do pai\n");
 }
 
 
